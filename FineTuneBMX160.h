@@ -5,7 +5,6 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <stdint.h>
-
 namespace FineTune
 {
     enum struct I2C_STATUS : uint8_t
@@ -18,6 +17,13 @@ namespace FineTune
         ERR_TIMEOUT = UINT8_C(5)
     };
 
+    typedef struct
+    {
+        float x;
+        float y;
+        float z;
+    } DataPacket;
+
     class BMX160
     {
     public:
@@ -25,6 +31,7 @@ namespace FineTune
         BMX160() = default;
         BMX160(arduino::TwoWire &Wire, uint8_t address = UINT8_C(0x68));
 
+        [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
         /**
          * @brief Sends a write command through the I2C protocol
          *
@@ -35,13 +42,23 @@ namespace FineTune
         [[nodiscard]] I2C_STATUS writeReg(const uint8_t reg, const uint8_t byte);
 
         /**
-         * @brief Requests a single byte through the I2C protocol
+         * @brief Requests one byte through the I2C protocol
          *
          * @param reg Register to read from
-         * @param buffer 8-bit variable to write to
+         * @param buffer 8-bit buffer for storing read value
+         * @return I2C_STATUS
+         */
+        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t buffer);
+
+        /**
+         * @brief Requests a variable number of bytes through the I2C protocol
+         *
+         * @param reg Register to read from
+         * @param buffer Pointer to 8-bit buffer of length length
+         * @param length Length of buffer buffer
          * @return uint8_t FineTune::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t &buffer);
+        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t *const buffer, uint8_t length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
