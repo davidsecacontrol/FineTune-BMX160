@@ -17,12 +17,17 @@ namespace FineTune
         ERR_TIMEOUT = UINT8_C(5)
     };
 
+
+    constexpr float ACCEL_Gs_PER_LSB = 1.0f/16384.0f; // Typical value
+    constexpr float GYRO_DEG_S_PER_LSB = 1.0f/16.4f; // Typical value
+    constexpr float MAGN_uT_PER_LSB = 0.3f; // Typical value
+
     typedef struct
     {
         float x;
         float y;
         float z;
-    } DataPacket;
+    } BMX160DataPacket;
 
     class BMX160
     {
@@ -31,7 +36,9 @@ namespace FineTune
         BMX160() = default;
         BMX160(arduino::TwoWire &Wire, uint8_t address = UINT8_C(0x68));
 
-        [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
+        [[nodiscard]] I2C_STATUS begin();
+
+        [[nodiscard]] I2C_STATUS getAllData(BMX160DataPacket &accel, BMX160DataPacket &gyro, BMX160DataPacket &magn);
         /**
          * @brief Sends a write command through the I2C protocol
          *
@@ -48,7 +55,7 @@ namespace FineTune
          * @param buffer 8-bit buffer for storing read value
          * @return I2C_STATUS
          */
-        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t buffer);
+        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t& buffer);
 
         /**
          * @brief Requests a variable number of bytes through the I2C protocol
