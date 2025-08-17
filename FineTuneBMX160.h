@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <stdint.h>
-namespace FineTune
+namespace FineTuneBMX160
 {
     enum struct I2C_STATUS : uint8_t
     {
@@ -44,7 +44,7 @@ namespace FineTune
          *
          * @param reg Reister to write to
          * @param byte 8-bit value to write
-         * @return uint8_t FineTune::I2CStatus to identify failed transmission
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS writeReg(const uint8_t reg, const uint8_t byte);
 
@@ -63,14 +63,14 @@ namespace FineTune
          * @param reg Register to read from
          * @param buffer Pointer to 8-bit buffer of length length
          * @param length Length of buffer buffer
-         * @return uint8_t FineTune::I2CStatus to identify failed transmission
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t *const buffer, int length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
          *
-         * @return uint8_t FineTune::I2CStatus to identify failed transmission
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS isConnected();
 

@@ -1,6 +1,6 @@
 #include "FineTuneBMX160.h"
 
-using namespace FineTune;
+using namespace FineTuneBMX160;
 
 // Utility functions:----------------
 inline void CopyBufferToDataPacket(BMX160DataPacket& packet, uint8_t* buffer, float conversionFactor);
