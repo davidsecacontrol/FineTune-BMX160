@@ -3,56 +3,125 @@
 using namespace FineTuneBMX160;
 
 // Utility functions:----------------
-inline void CopyBufferToDataPacket(BMX160DataPacket& packet, uint8_t* buffer, float conversionFactor);
+inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float conversionFactor);
 
 // ---------------------------------
 
+constexpr float G_TO_MS2 = 9.80665f;
+
+namespace SENSITIVITY
+{
+    constexpr float ACCEL[] = { 
+        1.0f / 16384,
+        1.0f / 8192,
+        1.0f / 4096,
+        1.0f / 2048
+    };
+    
+    constexpr float GYRO[] = {  
+        1.0f/16.4f,
+        1.0f/32.8f,
+        1.0f/65.6f,
+        1.0f/131.2f
+    };
+
+    constexpr float MAGN[] = {
+        0.3f
+    };
+}
+
+namespace MASK{
+    constexpr uint8_t ACCEL_RANGE[] = {
+        0b00000011,
+        0b00000101,
+        0b00001000,
+        0b00001100
+    };
+    constexpr uint8_t GYRO_RANGE[] = {
+        0b00000000,
+        0b00000001,
+        0b00000010,
+        0b00000011,
+        0b00000100
+    };
+}
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};
 
- I2C_STATUS BMX160::begin(){
-    I2C_STATUS state = writeReg(UINT8_C(0x7E),UINT8_C(0x11)); // Turn on accel
+I2C_STATUS BMX160::begin()
+{
+    I2C_STATUS state = writeReg(UINT8_C(0x7E), UINT8_C(0x11)); // Turn on accel
     delay(10);
 
-    if(state != I2C_STATUS::SUCCESS){
+    if (state != I2C_STATUS::SUCCESS)
+    {
         return state;
     }
 
-    state = writeReg(UINT8_C(0x7E),UINT8_C(0x15)); // Turn on accel
+    state = writeReg(UINT8_C(0x7E), UINT8_C(0x15)); // Turn on accel
     delay(100);
 
-    if(state != I2C_STATUS::SUCCESS){
+    if (state != I2C_STATUS::SUCCESS)
+    {
         return state;
     }
 
-    state = writeReg(UINT8_C(0x7E),UINT8_C(0x18)); // Turn on accel
+    state = writeReg(UINT8_C(0x7E), UINT8_C(0x18)); // Turn on accel
     delay(10);
-    
-    if(state != I2C_STATUS::SUCCESS){
+
+    if (state != I2C_STATUS::SUCCESS)
+    {
         return state;
     }
     return state;
 }
 
+I2C_STATUS BMX160::setAccelRange(RANGE::ACCEL range){
+    I2C_STATUS state = writeReg(UINT8_C(0x41),MASK::ACCEL_RANGE[(int) range]);
+    
+    if(state != I2C_STATUS::SUCCESS){
+        return state;
+    }
+    this->accelerometer_range = range;
 
-I2C_STATUS BMX160::getAllData(BMX160DataPacket &accel, BMX160DataPacket &gyro, BMX160DataPacket &magn)
+    // Recommended to perform a read to remove all stall data
+    DataPacket buffer;
+    return getAllData(buffer,buffer,buffer);
+
+}
+
+I2C_STATUS BMX160::setGyroRange(RANGE::GYRO range){
+
+    I2C_STATUS state = writeReg(UINT8_C(0x43),MASK::GYRO_RANGE[(int) range]);
+
+    if(state != I2C_STATUS::SUCCESS){
+        return state;
+    }
+    this->gyroscope_range = range;
+
+    // Recommended to perform a read to remove all stall data
+    DataPacket buffer;
+    return getAllData(buffer,buffer,buffer);
+
+}
+
+
+I2C_STATUS BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
     uint8_t buffer[20];
-    I2C_STATUS state = this->readReg(UINT8_C(0x04),buffer,20);
+    I2C_STATUS state = this->readReg(UINT8_C(0x04), buffer, 20);
 
-    if(state != I2C_STATUS::SUCCESS){
+    if (state != I2C_STATUS::SUCCESS)
+    {
         return state;
     }
 
-    CopyBufferToDataPacket(accel,&buffer[14],ACCEL_Gs_PER_LSB*9.80665f);
-    CopyBufferToDataPacket(gyro ,&buffer[8],GYRO_DEG_S_PER_LSB);
-    CopyBufferToDataPacket(magn ,&buffer[0],MAGN_uT_PER_LSB);
-    
- 
+    CopyBufferToDataPacket(accel, &buffer[14], SENSITIVITY::ACCEL[(int) this->accelerometer_range]*G_TO_MS2);
+    CopyBufferToDataPacket(gyro,  &buffer[8] , SENSITIVITY::GYRO[(int) this->gyroscope_range]);
+    CopyBufferToDataPacket(magn,  &buffer[0] , SENSITIVITY::MAGN[(int)this->magnetorquer_range]);
 
     return state;
 }
-
 
 I2C_STATUS BMX160::writeReg(const uint8_t reg, const uint8_t byte)
 {
@@ -62,7 +131,7 @@ I2C_STATUS BMX160::writeReg(const uint8_t reg, const uint8_t byte)
     return static_cast<I2C_STATUS>(this->Wire.endTransmission());
 }
 
-I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t& buffer)
+I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t &buffer)
 {
     return this->readReg(reg, &buffer, 1);
 }
@@ -98,8 +167,9 @@ I2C_STATUS BMX160::isConnected()
 
 // Other utility functions
 
-inline void CopyBufferToDataPacket(BMX160DataPacket& packet, uint8_t* buffer, float conversionFactor){
-    packet.x = ((int16_t)((uint16_t) buffer[1] << 8 | buffer[0])) * conversionFactor;
-    packet.y = ((int16_t)((uint16_t) buffer[3] << 8 | buffer[2])) * conversionFactor;
-    packet.z = ((int16_t)((uint16_t) buffer[5] << 8 | buffer[4])) * conversionFactor;
+inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float conversionFactor)
+{
+    packet.x = ((int16_t)((uint16_t)buffer[1] << 8 | buffer[0])) * conversionFactor;
+    packet.y = ((int16_t)((uint16_t)buffer[3] << 8 | buffer[2])) * conversionFactor;
+    packet.z = ((int16_t)((uint16_t)buffer[5] << 8 | buffer[4])) * conversionFactor;
 }

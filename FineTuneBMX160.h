@@ -17,17 +17,36 @@ namespace FineTuneBMX160
         ERR_TIMEOUT = UINT8_C(5)
     };
 
+    namespace RANGE
+    {
+        enum struct ACCEL : int
+        {
+            G2 = 0,
+            G4 = 1,
+            G8 = 2,
+            G16= 3
+        };
 
-    constexpr float ACCEL_Gs_PER_LSB = 1.0f/16384.0f; // Typical value
-    constexpr float GYRO_DEG_S_PER_LSB = 1.0f/16.4f; // Typical value
-    constexpr float MAGN_uT_PER_LSB = 0.3f; // Typical value
+        enum struct GYRO : int
+        {
+            DPS2000 = 0,
+            DPS1000 = 1,
+            DPS500 = 2,
+            DPS250 = 3,
+            DPS150 = 4
+        };
+        enum struct MAGN : int
+        {
+            uT0_3 = 0
+        };
+    }
 
     typedef struct
     {
         float x;
         float y;
         float z;
-    } BMX160DataPacket;
+    } DataPacket;
 
     class BMX160
     {
@@ -38,7 +57,10 @@ namespace FineTuneBMX160
 
         [[nodiscard]] I2C_STATUS begin();
 
-        [[nodiscard]] I2C_STATUS getAllData(BMX160DataPacket &accel, BMX160DataPacket &gyro, BMX160DataPacket &magn);
+        [[nodiscard]] I2C_STATUS setAccelRange(RANGE::ACCEL range);
+        [[nodiscard]] I2C_STATUS  setGyroRange(RANGE::GYRO range);
+
+        [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
         /**
          * @brief Sends a write command through the I2C protocol
          *
@@ -55,7 +77,7 @@ namespace FineTuneBMX160
          * @param buffer 8-bit buffer for storing read value
          * @return I2C_STATUS
          */
-        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t& buffer);
+        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t &buffer);
 
         /**
          * @brief Requests a variable number of bytes through the I2C protocol
@@ -74,9 +96,14 @@ namespace FineTuneBMX160
          */
         [[nodiscard]] I2C_STATUS isConnected();
 
-        // protected:
+    protected:
         arduino::TwoWire &Wire = Wire;
         const uint8_t address = UINT8_C(0x68);
+
+        // Default values after reset
+        RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2;
+        RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;
+        RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3;
     };
 
 }
