@@ -21,6 +21,7 @@ namespace FineTune
     class BMX160
     {
     public:
+        // Initializers
         BMX160() = default;
         BMX160(arduino::TwoWire &Wire, uint8_t address = UINT8_C(0x68));
 
@@ -40,7 +41,7 @@ namespace FineTune
          * @param buffer 8-bit variable to write to
          * @return uint8_t FineTune::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t& buffer);
+        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t &buffer);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
