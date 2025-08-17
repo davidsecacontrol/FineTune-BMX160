@@ -18,10 +18,10 @@ I2C_STATUS BMX160::writeReg(const uint8_t reg, const uint8_t byte)
 
 I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t buffer)
 {
-    return this->readReg(reg, &buffer, UINT8_C(1));
+    return this->readReg(reg, &buffer, 1);
 }
 
-I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t *const buffer, uint8_t length)
+I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t *const buffer, int length)
 {
     // Send register to read
     this->Wire.beginTransmission(this->address);

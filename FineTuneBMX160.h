@@ -58,7 +58,7 @@ namespace FineTune
          * @param length Length of buffer buffer
          * @return uint8_t FineTune::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t *const buffer, uint8_t length);
+        [[nodiscard]] I2C_STATUS readReg(const uint8_t reg, uint8_t *const buffer, int length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
