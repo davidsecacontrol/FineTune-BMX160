@@ -54,7 +54,7 @@ I2C_STATUS BMX160::begin()
         return state;
     }
 
-    state = writeReg(REGISTER::CMD, UINT8_C(0x15)); // Turn on accel
+    state = writeReg(REGISTER::CMD, UINT8_C(0x15)); // Turn on gyro
     delay(100);
 
     if (state != I2C_STATUS::SUCCESS)
@@ -62,13 +62,10 @@ I2C_STATUS BMX160::begin()
         return state;
     }
 
-    state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on accel
+    /*
+    state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on magn
     delay(10);
-
-    if (state != I2C_STATUS::SUCCESS)
-    {
-        return state;
-    }
+    */
     return state;
 }
 
