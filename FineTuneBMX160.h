@@ -1,3 +1,12 @@
+/**
+ * @file FineTuneBMX160.h
+ * @author David Secades (dasecacontrol@gmail.com)
+ * @brief Library header
+ * @version 0.1
+ * @date 2025-08-18
+ *
+ *
+ */
 #ifndef FINETUNE_BMX160
 #define FINETUNE_BMX160
 
@@ -7,7 +16,10 @@
 #include <stdint.h>
 namespace FineTuneBMX160
 {
-    enum struct REGISTER: uint8_t{
+
+    /** @brief BMX160 register bank idenitifiers*/
+    enum struct REGISTER : uint8_t
+    {
         CHIP_ID = UINT8_C(0x00),
         ERR_REG = UINT8_C(0x02),
         PMU_STATUS = UINT8_C(0x03),
@@ -87,13 +99,13 @@ namespace FineTuneBMX160
         PMU_TRIGGER = UINT8_C(0x6C),
         SELFT_TEST = UINT8_C(0x6D),
         NV_CONF = UINT8_C(0x70),
-        OFFSET_0 =  UINT8_C(0x71),
-        OFFSET_1 =  UINT8_C(0x72),
-        OFFSET_2 =  UINT8_C(0x73),
-        OFFSET_3 =  UINT8_C(0x74),
-        OFFSET_4 =  UINT8_C(0x75),
-        OFFSET_5 =  UINT8_C(0x76),
-        OFFSET_6 =  UINT8_C(0x77),
+        OFFSET_0 = UINT8_C(0x71),
+        OFFSET_1 = UINT8_C(0x72),
+        OFFSET_2 = UINT8_C(0x73),
+        OFFSET_3 = UINT8_C(0x74),
+        OFFSET_4 = UINT8_C(0x75),
+        OFFSET_5 = UINT8_C(0x76),
+        OFFSET_6 = UINT8_C(0x77),
         STEP_CNT_0 = UINT8_C(0x78),
         STEP_CNT_1 = UINT8_C(0x79),
         STEP_CONF_0 = UINT8_C(0x7A),
@@ -101,6 +113,7 @@ namespace FineTuneBMX160
         CMD = UINT8_C(0x7E)
     };
 
+    /** @brief Wire I2C error identifiers*/
     enum struct I2C_STATUS : uint8_t
     {
         SUCCESS = UINT8_C(0),
@@ -113,14 +126,16 @@ namespace FineTuneBMX160
 
     namespace RANGE
     {
+        /** @brief Allowed accelerometer ranges */
         enum struct ACCEL : int
         {
             G2 = 0,
             G4 = 1,
             G8 = 2,
-            G16= 3
+            G16 = 3
         };
 
+        /** @brief Allowed gyroscope ranges */
         enum struct GYRO : int
         {
             DPS2000 = 0,
@@ -129,32 +144,74 @@ namespace FineTuneBMX160
             DPS250 = 3,
             DPS150 = 4
         };
+
+        /** @brief Allowed magnetometer range*/
         enum struct MAGN : int
         {
             uT0_3 = 0
         };
     }
 
+    /** @brief Single sensor measurement */
     typedef struct
     {
-        float x;
-        float y;
-        float z;
+        float x; ///< x-axis
+        float y; ///< y-axis
+        float z; ///< z-axis
     } DataPacket;
 
+    /**
+     * @brief Sensor API. All communication with sensor should happen throuh this library
+     * 
+     */
     class BMX160
     {
     public:
-        // Initializers
+        // Initializers --------------------------------------------------------------
         BMX160() = default;
-        BMX160(arduino::TwoWire &Wire, uint8_t address = UINT8_C(0x68));
 
+        /**
+         * @brief Constructor with specific Wire instance or device address
+         *
+         * @param Wire Wire instance
+         * @param address Device address
+         */
+        BMX160(arduino::TwoWire &Wire, uint8_t address = UINT8_C(0x68));
+        // --------------------------------------------------------------------------
+
+        /**
+         * @brief Power up accelerometer, gyroscope and magnetometer(WIP)
+         *
+         * @return I2C_STATUS
+         */
         [[nodiscard]] I2C_STATUS begin();
 
+        /**
+         * @brief Set specific accelerometer data range
+         *
+         * @param range Desired range
+         * @return I2C_STATUS
+         */
         [[nodiscard]] I2C_STATUS setAccelRange(RANGE::ACCEL range);
-        [[nodiscard]] I2C_STATUS  setGyroRange(RANGE::GYRO range);
 
+        /**
+         * @brief Set specific gyroscope data range
+         *
+         * @param range Desired range
+         * @return I2C_STATUS
+         */
+        [[nodiscard]] I2C_STATUS setGyroRange(RANGE::GYRO range);
+
+        /**
+         * @brief Reads latest sensor data
+         *
+         * @param accel Object to store accelerometer data
+         * @param gyro  Object to store gyroscope data
+         * @param magn  Object to store magnetometer data
+         * @return I2C_STATUS
+         */
         [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
+
         /**
          * @brief Sends a write command through the I2C protocol
          *
@@ -191,13 +248,12 @@ namespace FineTuneBMX160
         [[nodiscard]] I2C_STATUS isConnected();
 
     protected:
-        arduino::TwoWire &Wire = Wire;
-        const uint8_t address = UINT8_C(0x68);
+        arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
+        const uint8_t address = UINT8_C(0x68); ///< Sensor address
 
-        // Default values after reset
-        RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2;
-        RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;
-        RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3;
+        RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2; ///< Current accelerometer range
+        RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;  ///< Current gyroscope range
+        RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
     };
 
 }

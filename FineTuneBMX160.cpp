@@ -1,45 +1,72 @@
+/**
+ * @file FineTuneBMX160.cpp
+ * @author your name (you@domain.com)
+ * @brief Library source
+ * @version 0.1
+ * @date 2025-08-18
+ * 
+ * 
+ */
 #include "FineTuneBMX160.h"
 
 using namespace FineTuneBMX160;
 
 // Utility functions:----------------
+
+/**
+ * @brief Receives accel/magn/gyro data in uint8_t format and converts it into float values
+ * 
+ * @param packet Output float data
+ * @param buffer Input uint8_t data
+ * @param conversionFactor Sensitivity of LSB
+ */
 inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float conversionFactor);
 
 // ---------------------------------
 
+/** @brief Conversion factor from Gs to m^2/s */
 constexpr float G_TO_MS2 = 9.80665f;
+
 
 namespace SENSITIVITY
 {
+    /** @brief Accelerometer sensitivity presets*/
     constexpr float ACCEL[] = {
         1.0f / 16384,
         1.0f / 8192,
         1.0f / 4096,
         1.0f / 2048};
 
+    /** @brief Gyroscope sensisitivy presets*/
     constexpr float GYRO[] = {
         1.0f / 16.4f,
         1.0f / 32.8f,
         1.0f / 65.6f,
         1.0f / 131.2f};
 
+    /** @brief Magnetometer sensitivity presets*/
     constexpr float MAGN[] = {
         0.3f};
 }
 
 namespace MASK
 {
+    /** @brief Masks for setting accelerometer range*/
     constexpr uint8_t ACCEL_RANGE[] = {
         0b00000011,
         0b00000101,
         0b00001000,
-        0b00001100};
+        0b00001100
+    };
+
+    /** @brief Masks for setting gyroscope range*/
     constexpr uint8_t GYRO_RANGE[] = {
         0b00000000,
         0b00000001,
         0b00000010,
         0b00000011,
-        0b00000100};
+        0b00000100
+    };
 }
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};

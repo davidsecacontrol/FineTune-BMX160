@@ -1,3 +1,12 @@
+/**
+ * @file GetAllData.ino
+ * @author David Secades (dasecacontrol@gmail.com)
+ * @brief  Example 1: Read data from accel and gyroscope
+ * @version 0.1
+ * @date 2025-08-18
+ * 
+ * 
+ */
 #include <Arduino.h>
 #include "FineTuneBMX160.h"
 
