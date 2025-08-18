@@ -181,7 +181,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer buffer
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t *const buffer, int length);
+        [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
