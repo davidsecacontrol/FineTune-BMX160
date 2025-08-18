@@ -50,7 +50,7 @@ BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{ad
 
 I2C_STATUS BMX160::begin()
 {
-    I2C_STATUS state = writeReg(UINT8_C(0x7E), UINT8_C(0x11)); // Turn on accel
+    I2C_STATUS state = writeReg(REGISTER::CMD, UINT8_C(0x11)); // Turn on accel
     delay(10);
 
     if (state != I2C_STATUS::SUCCESS)
@@ -58,7 +58,7 @@ I2C_STATUS BMX160::begin()
         return state;
     }
 
-    state = writeReg(UINT8_C(0x7E), UINT8_C(0x15)); // Turn on accel
+    state = writeReg(REGISTER::CMD, UINT8_C(0x15)); // Turn on accel
     delay(100);
 
     if (state != I2C_STATUS::SUCCESS)
@@ -66,7 +66,7 @@ I2C_STATUS BMX160::begin()
         return state;
     }
 
-    state = writeReg(UINT8_C(0x7E), UINT8_C(0x18)); // Turn on accel
+    state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on accel
     delay(10);
 
     if (state != I2C_STATUS::SUCCESS)
@@ -77,7 +77,7 @@ I2C_STATUS BMX160::begin()
 }
 
 I2C_STATUS BMX160::setAccelRange(RANGE::ACCEL range){
-    I2C_STATUS state = writeReg(UINT8_C(0x41),MASK::ACCEL_RANGE[(int) range]);
+    I2C_STATUS state = writeReg(REGISTER::ACC_RANGE,MASK::ACCEL_RANGE[(int) range]);
     
     if(state != I2C_STATUS::SUCCESS){
         return state;
@@ -92,7 +92,7 @@ I2C_STATUS BMX160::setAccelRange(RANGE::ACCEL range){
 
 I2C_STATUS BMX160::setGyroRange(RANGE::GYRO range){
 
-    I2C_STATUS state = writeReg(UINT8_C(0x43),MASK::GYRO_RANGE[(int) range]);
+    I2C_STATUS state = writeReg(REGISTER::GYR_RANGE,MASK::GYRO_RANGE[(int) range]);
 
     if(state != I2C_STATUS::SUCCESS){
         return state;
@@ -109,7 +109,7 @@ I2C_STATUS BMX160::setGyroRange(RANGE::GYRO range){
 I2C_STATUS BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
     uint8_t buffer[20];
-    I2C_STATUS state = this->readReg(UINT8_C(0x04), buffer, 20);
+    I2C_STATUS state = this->readReg(REGISTER::DATA_0, buffer, 20);
 
     if (state != I2C_STATUS::SUCCESS)
     {
@@ -123,24 +123,24 @@ I2C_STATUS BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &m
     return state;
 }
 
-I2C_STATUS BMX160::writeReg(const uint8_t reg, const uint8_t byte)
+I2C_STATUS BMX160::writeReg(const REGISTER reg, const uint8_t byte)
 {
     this->Wire.beginTransmission(this->address);
-    this->Wire.write(reg);
+    this->Wire.write((uint8_t) reg);
     this->Wire.write(&byte, 1);
     return static_cast<I2C_STATUS>(this->Wire.endTransmission());
 }
 
-I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t &buffer)
+I2C_STATUS BMX160::readReg(const REGISTER reg, uint8_t &buffer)
 {
     return this->readReg(reg, &buffer, 1);
 }
 
-I2C_STATUS BMX160::readReg(const uint8_t reg, uint8_t *const buffer, int length)
+I2C_STATUS BMX160::readReg(const REGISTER reg, uint8_t *const buffer, int length)
 {
     // Send register to read
     this->Wire.beginTransmission(this->address);
-    this->Wire.write(&reg, 1);
+    this->Wire.write(reinterpret_cast<const uint8_t*>(&reg), 1);
     I2C_STATUS status = static_cast<I2C_STATUS>(this->Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
 
     if (status != I2C_STATUS::SUCCESS)
