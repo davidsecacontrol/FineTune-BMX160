@@ -1,7 +1,7 @@
 # FineTune BMX160 Sensor Library
 
-A statically allocated library for interfacing with the **BMX160 9-axis sensor** intended for 3D orientation algorithms. 
-Currently under active development — the initial implementation supports **accelerometer** and **gyroscope** data gathering, along with **range configuration**.
+A statically allocated library for interfacing with the [BMX160 9-axis sensor](https://www.mouser.com/pdfdocs/BST-BMX160-DS000-11.pdf?srsltid=AfmBOorUoEEuLLeUnl63Qi5JP0psxd0zj9lsFmA3bqbn5dXef2W4PHS2) intended for 3D orientation algorithms. 
+Currently under active development — the current implementation supports **accelerometer** and **gyroscope** data gathering, along with **range configuration**.
 
 
 
@@ -9,6 +9,10 @@ Currently under active development — the initial implementation supports **acc
 - Read **accelerometer** data  
 - Read **gyroscope** data  
 - Configure **measurement ranges**
-- Magnetometer and advanced features (Power modes, undersampling, digital filter FIFO, etc.) coming soon  
+- Magnetometer and advanced features (Power modes, undersampling, digital filter FIFO, etc.) coming soon
+
+  ## Roadmap
+  For an updated development plan, check [this ClickUp board](https://sharing.clickup.com/90151493180/b/h/5-90158959475-2/683fd04fea24ccc)
+
 
 
