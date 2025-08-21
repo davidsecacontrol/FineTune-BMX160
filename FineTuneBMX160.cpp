@@ -46,7 +46,12 @@ namespace SENSITIVITY
 
     /** @brief Magnetometer sensitivity presets*/
     constexpr float MAGN[] = {
-        0.3f};
+        0.3f
+    };
+    /** @brief Temperature sensor sensitivity presets */
+    constexpr float TEMP[] = {
+        1.0f/512.0f
+    };
 }
 
 namespace MASK
@@ -191,6 +196,34 @@ bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
     CopyBufferToDataPacket(accel, &buffer[14], SENSITIVITY::ACCEL[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
     CopyBufferToDataPacket(gyro, &buffer[8], SENSITIVITY::GYRO[static_cast<size_t>(this->gyroscope_range)]);
     CopyBufferToDataPacket(magn, &buffer[0], SENSITIVITY::MAGN[static_cast<size_t>(this->magnetorquer_range)]);
+
+    return true;
+}
+
+bool BMX160::getTemp(float& temp){
+    uint8_t buffer[2];
+
+    if(!this->readReg(REGISTER::TEMPERATURE_0,buffer,2)){
+        return false;
+    }
+    /*
+    // RAW READ
+    constexpr char translation[] = {'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
+    Serial.print("Temp raw read: 0x");Serial.print(translation[buffer[1]>>4]);Serial.print(translation[buffer[1]&0x0F]);
+    Serial.print(translation[buffer[0]>>4]);Serial.print(translation[buffer[0]&0x0F]);
+    Serial.print(",");Serial.println( static_cast<int16_t>((static_cast<uint16_t>(buffer[0]) << 8) + buffer[1]) );
+    */
+
+    constexpr float OFFSET = 23.0f;
+
+    uint16_t raw_data = (static_cast<uint16_t>(buffer[1]) << 8) + buffer[0];
+
+    if(raw_data == 0x8000){ // From datasheet
+        this->state = ERROR_CODE::INVALID_TEMPERATURE_MEASUREMENT;
+        return false;
+    }
+
+    temp = static_cast<int16_t>(raw_data) * SENSITIVITY::TEMP[0]+OFFSET;
 
     return true;
 }

@@ -122,7 +122,8 @@ namespace FineTuneBMX160
         I2C_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
         I2C_OTHER = UINT8_C(4),
         I2C_TIMEOUT = UINT8_C(5),
-        UNINITIALIZED = UINT8_C(6)
+        UNINITIALIZED = UINT8_C(6),
+        INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7)
     };
 
 
@@ -284,6 +285,13 @@ namespace FineTuneBMX160
          */
         [[nodiscard]] bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
+        /**
+         * @brief Reads the sensor temperature data. Updated never (all sensors suspended) every 10ms +- (gyro enabled) or 1.28s lining with bit 15 of sensortime (gyro suspended / fast mode)
+         * 
+         * @param temp Read temperature value
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool getTemp(float& temp);
         /**
          * @brief Sends a write command through the I2C protocol
          *
