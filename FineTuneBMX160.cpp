@@ -77,6 +77,9 @@ namespace MASK
 
     /** @brief Masks for setting gyroscope power mode*/
     constexpr uint8_t GYRO_MPU[] = {
+        0b00010101,
+        0b00010111,
+        0b00010100
     };
 
     /** @brief Masks for setting magnetometer power mode*/
@@ -96,8 +99,7 @@ I2C_STATUS BMX160::begin()
         return state;
     }
 
-    state = writeReg(REGISTER::CMD, UINT8_C(0x15)); // Turn on gyro
-    delay(100);
+    state = setGyroPowerMode(POWER_MODE::GYRO::NORMAL); // Turn on gyro
 
     if (state != I2C_STATUS::SUCCESS)
     {
@@ -157,6 +159,20 @@ I2C_STATUS BMX160::setAccelPowerMode(POWER_MODE::ACCEL power_mode){
     return result;
 }
 
+I2C_STATUS BMX160::setGyroPowerMode(POWER_MODE::GYRO power_mode){
+    I2C_STATUS result = writeReg(REGISTER::CMD,MASK::GYRO_MPU[static_cast<size_t>(power_mode)]);
+    this->gyroscope_power_mode = power_mode;
+
+    switch(power_mode){
+        case POWER_MODE::GYRO::SUSPEND:
+            delay(1); // Takes 300us to reset MPU
+            break;
+        default:
+            delay(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
+    }
+
+    return result;
+}
 
 
 I2C_STATUS BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
