@@ -114,15 +114,17 @@ namespace FineTuneBMX160
     };
 
     /** @brief Wire I2C error identifiers*/
-    enum struct I2C_STATUS : uint8_t
+    enum struct ERROR_CODE : uint8_t  // DO NOT CHANGE ORDER OF I2C ELEMENTS
     {
-        SUCCESS = UINT8_C(0),
-        ERR_TOO_LONG_FOR_BUFFER = UINT8_C(1),
-        ERR_NACK_ON_ADDRESS = UINT8_C(2),
-        ERR_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
-        ERR_OTHER = UINT8_C(4),
-        ERR_TIMEOUT = UINT8_C(5)
+        ALL_OK = UINT8_C(0),
+        I2C_TOO_LONG_FOR_BUFFER = UINT8_C(1),
+        I2C_NACK_ON_ADDRESS = UINT8_C(2),
+        I2C_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
+        I2C_OTHER = UINT8_C(4),
+        I2C_TIMEOUT = UINT8_C(5),
+        UNINITIALIZED = UINT8_C(6)
     };
+
 
     namespace RANGE
     {
@@ -152,6 +154,42 @@ namespace FineTuneBMX160
         };
     }
 
+    namespace POWER_MODE
+    {
+        /** @brief Allowed accelerometer power modes */
+        enum struct ACCEL : int
+        {
+            NORMAL = 0,
+            LOW_POWER = 1,
+            SUSPEND = 2
+        };
+
+        /** @brief Allowed gyroscope power modes */
+        enum struct GYRO : int
+        {
+            NORMAL = 0,
+            FAST_STARTUP = 1,
+            SUSPEND = 2
+        };
+
+        /** @brief Allowed magnetometer power modes*/
+        enum struct MAGN : int
+        {
+            FORCE = 0,
+            SLEEP = 1,
+            SUSPEND = 2
+
+        };
+        enum struct MAGN_INTERFACE : int
+        {
+            NORMAL = 0,
+            LOW_POWER = 1,
+            SUSPEND = 2
+        };
+    }
+
+
+
     /** @brief Single sensor measurement */
     typedef struct
     {
@@ -167,6 +205,9 @@ namespace FineTuneBMX160
     class BMX160
     {
     public:
+
+        ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
+
         // Initializers --------------------------------------------------------------
         BMX160() = default;
 
@@ -182,25 +223,53 @@ namespace FineTuneBMX160
         /**
          * @brief Power up accelerometer, gyroscope and magnetometer(WIP)
          *
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS begin();
+        [[nodiscard]] bool begin();
 
         /**
          * @brief Set specific accelerometer data range
          *
          * @param range Desired range
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS setAccelRange(RANGE::ACCEL range);
+        [[nodiscard]] bool setAccelRange(RANGE::ACCEL range);
 
         /**
          * @brief Set specific gyroscope data range
          *
          * @param range Desired range
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS setGyroRange(RANGE::GYRO range);
+        [[nodiscard]] bool setGyroRange(RANGE::GYRO range);
+
+
+        /**
+         * @brief Set the accelerometer power mode. 
+         * 
+         * @param power_mode 
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
+         */
+        [[nodiscard]] bool setAccelPowerMode(POWER_MODE::ACCEL power_mode);
+
+        /**
+         * @brief Set the gyroscope power mode. 
+         * 
+         * @param power_mode 
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
+         */
+        [[nodiscard]] bool setGyroPowerMode(POWER_MODE::GYRO power_mode);
+
+        /**
+         * @brief Set the magnetometer power mode
+         * 
+         * 
+         * @param power_mode 
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
+         */
+        [[nodiscard]] bool setMagnPowerMode(POWER_MODE::MAGN power_mode);
+
+
 
         /**
          * @brief Reads latest sensor data
@@ -208,9 +277,9 @@ namespace FineTuneBMX160
          * @param accel Object to store accelerometer data
          * @param gyro  Object to store gyroscope data
          * @param magn  Object to store magnetometer data
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
+        [[nodiscard]] bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
         /**
          * @brief Sends a write command through the I2C protocol
@@ -219,16 +288,16 @@ namespace FineTuneBMX160
          * @param byte 8-bit value to write
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS writeReg(const REGISTER reg, const uint8_t byte);
+        [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
 
         /**
          * @brief Requests one byte through the I2C protocol
          *
          * @param reg Register to read from
          * @param buffer 8-bit buffer for storing read value
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t &buffer);
+        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t &buffer);
 
         /**
          * @brief Requests a variable number of bytes through the I2C protocol
@@ -238,14 +307,14 @@ namespace FineTuneBMX160
          * @param length Length of buffer buffer
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
          *
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS isConnected();
+        [[nodiscard]] bool isConnected();
 
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
@@ -254,6 +323,18 @@ namespace FineTuneBMX160
         RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2; ///< Current accelerometer range
         RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;  ///< Current gyroscope range
         RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
+
+        // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
+        // - burst write
+        // - Write without a 0.4 ms wait
+        // - burst read on FIFO_DATA
+        // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
+        // - read the FIFO
+        POWER_MODE::ACCEL accelerometer_power_mode = POWER_MODE::ACCEL::SUSPEND;
+        POWER_MODE::GYRO gyroscope_power_mode = POWER_MODE::GYRO::SUSPEND;
+        POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
+        POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
+        
     };
 
 }
