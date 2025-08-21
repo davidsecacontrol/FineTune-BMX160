@@ -114,15 +114,17 @@ namespace FineTuneBMX160
     };
 
     /** @brief Wire I2C error identifiers*/
-    enum struct I2C_STATUS : uint8_t
+    enum struct ERROR_CODE : uint8_t  // DO NOT CHANGE ORDER OF I2C ELEMENTS
     {
-        SUCCESS = UINT8_C(0),
-        ERR_TOO_LONG_FOR_BUFFER = UINT8_C(1),
-        ERR_NACK_ON_ADDRESS = UINT8_C(2),
-        ERR_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
-        ERR_OTHER = UINT8_C(4),
-        ERR_TIMEOUT = UINT8_C(5)
+        ALL_OK = UINT8_C(0),
+        I2C_TOO_LONG_FOR_BUFFER = UINT8_C(1),
+        I2C_NACK_ON_ADDRESS = UINT8_C(2),
+        I2C_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
+        I2C_OTHER = UINT8_C(4),
+        I2C_TIMEOUT = UINT8_C(5),
+        UNINITIALIZED = UINT8_C(6)
     };
+
 
     namespace RANGE
     {
@@ -203,6 +205,9 @@ namespace FineTuneBMX160
     class BMX160
     {
     public:
+
+        ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
+
         // Initializers --------------------------------------------------------------
         BMX160() = default;
 
@@ -220,7 +225,7 @@ namespace FineTuneBMX160
          *
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS begin();
+        [[nodiscard]] bool begin();
 
         /**
          * @brief Set specific accelerometer data range
@@ -228,7 +233,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS setAccelRange(RANGE::ACCEL range);
+        [[nodiscard]] bool setAccelRange(RANGE::ACCEL range);
 
         /**
          * @brief Set specific gyroscope data range
@@ -236,7 +241,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS setGyroRange(RANGE::GYRO range);
+        [[nodiscard]] bool setGyroRange(RANGE::GYRO range);
 
 
         /**
@@ -245,7 +250,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
          */
-        [[nodiscard]] I2C_STATUS setAccelPowerMode(POWER_MODE::ACCEL power_mode);
+        [[nodiscard]] bool setAccelPowerMode(POWER_MODE::ACCEL power_mode);
 
         /**
          * @brief Set the gyroscope power mode. 
@@ -253,7 +258,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
          */
-        [[nodiscard]] I2C_STATUS setGyroPowerMode(POWER_MODE::GYRO power_mode);
+        [[nodiscard]] bool setGyroPowerMode(POWER_MODE::GYRO power_mode);
 
         /**
          * @brief Set the magnetometer power mode
@@ -262,7 +267,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
          */
-        [[nodiscard]] I2C_STATUS setMagnPowerMode(POWER_MODE::MAGN power_mode);
+        [[nodiscard]] bool setMagnPowerMode(POWER_MODE::MAGN power_mode);
 
 
 
@@ -274,7 +279,7 @@ namespace FineTuneBMX160
          * @param magn  Object to store magnetometer data
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
+        [[nodiscard]] bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
         /**
          * @brief Sends a write command through the I2C protocol
@@ -283,7 +288,7 @@ namespace FineTuneBMX160
          * @param byte 8-bit value to write
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS writeReg(const REGISTER reg, const uint8_t byte);
+        [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
 
         /**
          * @brief Requests one byte through the I2C protocol
@@ -292,7 +297,7 @@ namespace FineTuneBMX160
          * @param buffer 8-bit buffer for storing read value
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t &buffer);
+        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t &buffer);
 
         /**
          * @brief Requests a variable number of bytes through the I2C protocol
@@ -302,14 +307,14 @@ namespace FineTuneBMX160
          * @param length Length of buffer buffer
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
          *
          * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
-        [[nodiscard]] I2C_STATUS isConnected();
+        [[nodiscard]] bool isConnected();
 
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ

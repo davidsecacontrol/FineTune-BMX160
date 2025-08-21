@@ -90,62 +90,63 @@ namespace MASK
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};
 
-I2C_STATUS BMX160::begin()
+bool BMX160::begin()
 {
-    I2C_STATUS state = setAccelPowerMode(POWER_MODE::ACCEL::NORMAL);// Turn on accel
-
-    if (state != I2C_STATUS::SUCCESS)
+    if(!this->setAccelPowerMode(POWER_MODE::ACCEL::NORMAL)) // Turn on accel
     {
-        return state;
+        return false;
     }
 
-    state = setGyroPowerMode(POWER_MODE::GYRO::NORMAL); // Turn on gyro
-
-    if (state != I2C_STATUS::SUCCESS)
+    if(!this->setGyroPowerMode(POWER_MODE::GYRO::NORMAL)) // Turn on gyro
     {
-        return state;
+        return false;
     }
 
     /*
     state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on magn
     delay(10);
     */
-    return state;
+    return true;
 }
 
-I2C_STATUS BMX160::setAccelRange(RANGE::ACCEL range)
+bool BMX160::setAccelRange(RANGE::ACCEL range)
 {
-    I2C_STATUS state = writeReg(REGISTER::ACC_RANGE, MASK::ACCEL_RANGE[static_cast<size_t>(range)]);
-
-    if (state != I2C_STATUS::SUCCESS)
+    if(!this->writeReg(REGISTER::ACC_RANGE, MASK::ACCEL_RANGE[static_cast<size_t>(range)]))
     {
-        return state;
+        return false;
     }
+
     this->accelerometer_range = range;
 
     // Recommended to perform a read to remove all stall data
     DataPacket buffer;
-    return getAllData(buffer, buffer, buffer);
+    if(!this->getAllData(buffer, buffer, buffer)){
+        return false;
+    }
+    return true;
 }
 
-I2C_STATUS BMX160::setGyroRange(RANGE::GYRO range)
+bool BMX160::setGyroRange(RANGE::GYRO range)
 {
 
-    I2C_STATUS state = writeReg(REGISTER::GYR_RANGE, MASK::GYRO_RANGE[static_cast<size_t>(range)]);
-
-    if (state != I2C_STATUS::SUCCESS)
+    if(!this->writeReg(REGISTER::GYR_RANGE, MASK::GYRO_RANGE[static_cast<size_t>(range)]))
     {
-        return state;
+        return false;
     }
     this->gyroscope_range = range;
 
     // Recommended to perform a read to remove all stall data
     DataPacket buffer;
-    return getAllData(buffer, buffer, buffer);
+    if(!this->getAllData(buffer, buffer, buffer)){
+        return false;
+    }
+    return true;
 }
 
-I2C_STATUS BMX160::setAccelPowerMode(POWER_MODE::ACCEL power_mode){
-    I2C_STATUS result = writeReg(REGISTER::CMD,MASK::ACCEL_MPU[static_cast<size_t>(power_mode)]);
+bool BMX160::setAccelPowerMode(POWER_MODE::ACCEL power_mode){
+    if(!this->writeReg(REGISTER::CMD,MASK::ACCEL_MPU[static_cast<size_t>(power_mode)])){
+        return false;
+    }
     this->accelerometer_power_mode = power_mode;
 
     switch(power_mode){
@@ -156,11 +157,14 @@ I2C_STATUS BMX160::setAccelPowerMode(POWER_MODE::ACCEL power_mode){
             delay(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
     }
 
-    return result;
+    return true;
 }
 
-I2C_STATUS BMX160::setGyroPowerMode(POWER_MODE::GYRO power_mode){
-    I2C_STATUS result = writeReg(REGISTER::CMD,MASK::GYRO_MPU[static_cast<size_t>(power_mode)]);
+bool BMX160::setGyroPowerMode(POWER_MODE::GYRO power_mode){
+    if(!this->writeReg(REGISTER::CMD,MASK::GYRO_MPU[static_cast<size_t>(power_mode)])){
+        return false;
+    }
+
     this->gyroscope_power_mode = power_mode;
 
     switch(power_mode){
@@ -171,50 +175,50 @@ I2C_STATUS BMX160::setGyroPowerMode(POWER_MODE::GYRO power_mode){
             delay(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
     }
 
-    return result;
+    return true;
 }
 
 
-I2C_STATUS BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
+bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
     uint8_t buffer[20];
-    I2C_STATUS state = this->readReg(REGISTER::DATA_0, buffer, 20);
-
-    if (state != I2C_STATUS::SUCCESS)
-    {
-        return state;
-    }
+    if(!this->readReg(REGISTER::DATA_0, buffer, 20)){
+        return false;
+    };
 
     CopyBufferToDataPacket(accel, &buffer[14], SENSITIVITY::ACCEL[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
     CopyBufferToDataPacket(gyro, &buffer[8], SENSITIVITY::GYRO[static_cast<size_t>(this->gyroscope_range)]);
     CopyBufferToDataPacket(magn, &buffer[0], SENSITIVITY::MAGN[static_cast<size_t>(this->magnetorquer_range)]);
 
-    return state;
+    return true;
 }
 
-I2C_STATUS BMX160::writeReg(const REGISTER reg, const uint8_t byte)
+bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
 {
     this->Wire.beginTransmission(this->address);
     this->Wire.write(static_cast<uint8_t>(reg));
     this->Wire.write(&byte, 1);
-    return static_cast<I2C_STATUS>(this->Wire.endTransmission());
+    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+
+    return this->state == ERROR_CODE::ALL_OK;
 }
 
-I2C_STATUS BMX160::readReg(const REGISTER reg, uint8_t &buffer)
+bool BMX160::readReg(const REGISTER reg, uint8_t &buffer)
 {
     return this->readReg(reg, &buffer, 1);
+
 }
 
-I2C_STATUS BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
+bool BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
 {
     // Send register to read
     this->Wire.beginTransmission(this->address);
     this->Wire.write(reinterpret_cast<const uint8_t *>(&reg), 1);
-    I2C_STATUS status = static_cast<I2C_STATUS>(this->Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
+    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
 
-    if (status != I2C_STATUS::SUCCESS)
+    if (this->state != ERROR_CODE::ALL_OK)
     {
-        return status;
+        return false;
     }
 
     // Read the result
@@ -223,15 +227,16 @@ I2C_STATUS BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t len
     {
         buffer[i] = this->Wire.read();
     }
+    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
 
-    return static_cast<I2C_STATUS>(this->Wire.endTransmission());
+    return this->state == ERROR_CODE::ALL_OK;
 }
 
-// Add error codes https://docs.arduino.cc/language-reference/en/functions/communication/this->Wire/endTransmission/
-I2C_STATUS BMX160::isConnected()
+bool BMX160::isConnected()
 {
     this->Wire.beginTransmission(this->address);
-    return static_cast<I2C_STATUS>(this->Wire.endTransmission());
+    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+    return this->state == ERROR_CODE::ALL_OK;
 }
 
 // Other utility functions
@@ -241,5 +246,4 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
     packet.x = static_cast<int16_t>(static_cast<uint16_t>(buffer[1]) << 8 | buffer[0]) * conversionFactor;
     packet.y = static_cast<int16_t>(static_cast<uint16_t>(buffer[3]) << 8 | buffer[2]) * conversionFactor;
     packet.z = static_cast<int16_t>(static_cast<uint16_t>(buffer[5]) << 8 | buffer[4]) * conversionFactor;
-
 }
