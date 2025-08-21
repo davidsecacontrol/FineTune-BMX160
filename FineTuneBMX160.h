@@ -166,14 +166,23 @@ namespace FineTuneBMX160
         enum struct GYRO : int
         {
             NORMAL = 0,
-            SUSPEND = 1,
-            FAST_STARTUP = 2
+            FAST_STARTUP = 1,
+            SUSPEND = 2
         };
 
         /** @brief Allowed magnetometer power modes*/
         enum struct MAGN : int
         {
+            FORCE = 0,
+            SLEEP = 1,
+            SUSPEND = 2
 
+        };
+        enum struct MAGN_INTERFACE : int
+        {
+            NORMAL = 0,
+            LOW_POWER = 1,
+            SUSPEND = 2
         };
     }
 
@@ -310,8 +319,16 @@ namespace FineTuneBMX160
         RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;  ///< Current gyroscope range
         RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
 
+        // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
+        // - burst write
+        // - Write without a 0.4 ms wait
+        // - burst read on FIFO_DATA
+        // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
+        // - read the FIFO
         POWER_MODE::ACCEL accelerometer_power_mode = POWER_MODE::ACCEL::SUSPEND;
         POWER_MODE::GYRO gyroscope_power_mode = POWER_MODE::GYRO::SUSPEND;
+        POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
+        POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
         
     };
 
