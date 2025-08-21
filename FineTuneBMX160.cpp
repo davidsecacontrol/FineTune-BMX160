@@ -67,6 +67,21 @@ namespace MASK
         0b00000011,
         0b00000100
     };
+
+    /** @brief Masks for setting accelerometer power mode*/
+    constexpr uint8_t ACCEL_MPU[] = {
+    
+    };
+
+    /** @brief Masks for setting gyroscope power mode*/
+    constexpr uint8_t GYRO_MPU[] = {
+
+    };
+
+    /** @brief Masks for setting magnetometer power mode*/
+    constexpr uint8_t MAGN_MPU[] = {
+
+    };
 }
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};

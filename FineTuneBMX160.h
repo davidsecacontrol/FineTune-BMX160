@@ -152,6 +152,26 @@ namespace FineTuneBMX160
         };
     }
 
+    namespace POWER_MODE
+    {
+        /** @brief Allowed accelerometer power modes */
+        enum struct ACCEL : int
+        {
+        };
+
+        /** @brief Allowed gyroscope power modes */
+        enum struct GYRO : int
+        {
+        };
+
+        /** @brief Allowed magnetometer power modes*/
+        enum struct MAGN : int
+        {
+        };
+    }
+
+
+
     /** @brief Single sensor measurement */
     typedef struct
     {
@@ -201,6 +221,33 @@ namespace FineTuneBMX160
          * @return I2C_STATUS
          */
         [[nodiscard]] I2C_STATUS setGyroRange(RANGE::GYRO range);
+
+
+        /**
+         * @brief Set the accelerometer power mode. 
+         * 
+         * @param power_mode 
+         * @return I2C_STATUS 
+         */
+        [[nodiscard]] I2C_STATUS setAccelPowerMode(POWER_MODE::ACCEL power_mode);
+
+        /**
+         * @brief Set the gyroscope power mode. The available modes are
+         * 
+         * @param power_mode 
+         * @return I2C_STATUS 
+         */
+        [[nodiscard]] I2C_STATUS setGyroPowerMode(POWER_MODE::GYRO power_mode);
+
+        /**
+         * @brief Set the magnetorquer power mode. The available modes are
+         * 
+         * @param power_mode 
+         * @return I2C_STATUS 
+         */
+        [[nodiscard]] I2C_STATUS setMagnPowerMode(POWER_MODE::MAGN power_mode);
+
+
 
         /**
          * @brief Reads latest sensor data
