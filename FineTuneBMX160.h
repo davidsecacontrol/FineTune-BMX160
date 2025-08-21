@@ -202,7 +202,7 @@ namespace FineTuneBMX160
         /**
          * @brief Power up accelerometer, gyroscope and magnetometer(WIP)
          *
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS begin();
 
@@ -210,7 +210,7 @@ namespace FineTuneBMX160
          * @brief Set specific accelerometer data range
          *
          * @param range Desired range
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS setAccelRange(RANGE::ACCEL range);
 
@@ -218,7 +218,7 @@ namespace FineTuneBMX160
          * @brief Set specific gyroscope data range
          *
          * @param range Desired range
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS setGyroRange(RANGE::GYRO range);
 
@@ -227,23 +227,24 @@ namespace FineTuneBMX160
          * @brief Set the accelerometer power mode. 
          * 
          * @param power_mode 
-         * @return I2C_STATUS 
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
          */
         [[nodiscard]] I2C_STATUS setAccelPowerMode(POWER_MODE::ACCEL power_mode);
 
         /**
-         * @brief Set the gyroscope power mode. The available modes are
+         * @brief Set the gyroscope power mode. 
          * 
          * @param power_mode 
-         * @return I2C_STATUS 
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
          */
         [[nodiscard]] I2C_STATUS setGyroPowerMode(POWER_MODE::GYRO power_mode);
 
         /**
-         * @brief Set the magnetorquer power mode. The available modes are
+         * @brief Set the magnetometer power mode
+         * 
          * 
          * @param power_mode 
-         * @return I2C_STATUS 
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
          */
         [[nodiscard]] I2C_STATUS setMagnPowerMode(POWER_MODE::MAGN power_mode);
 
@@ -255,7 +256,7 @@ namespace FineTuneBMX160
          * @param accel Object to store accelerometer data
          * @param gyro  Object to store gyroscope data
          * @param magn  Object to store magnetometer data
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
@@ -273,7 +274,7 @@ namespace FineTuneBMX160
          *
          * @param reg Register to read from
          * @param buffer 8-bit buffer for storing read value
-         * @return I2C_STATUS
+         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
          */
         [[nodiscard]] I2C_STATUS readReg(const REGISTER reg, uint8_t &buffer);
 
