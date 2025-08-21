@@ -109,7 +109,7 @@ bool BMX160::begin()
 
     /*
     state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on magn
-    delay(10);
+    this->wait(10);
     */
     this->state = ERROR_CODE::ALL_OK;
     
@@ -158,10 +158,10 @@ bool BMX160::setAccelPowerMode(POWER_MODE::ACCEL power_mode){
 
     switch(power_mode){
         case POWER_MODE::ACCEL::SUSPEND:
-            delay(1); // Takes 300us to reset MPU
+            this->wait(1); // Takes 300us to reset MPU
             break;
         default:
-            delay(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
+            this->wait(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
     }
 
     return true;
@@ -176,10 +176,10 @@ bool BMX160::setGyroPowerMode(POWER_MODE::GYRO power_mode){
 
     switch(power_mode){
         case POWER_MODE::GYRO::SUSPEND:
-            delay(1); // Takes 300us to reset MPU
+            this->wait(1); // Takes 300us to reset MPU
             break;
         default:
-            delay(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
+            this->wait(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
     }
 
     return true;
@@ -281,4 +281,17 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
     packet.x = static_cast<int16_t>(static_cast<uint16_t>(buffer[1]) << 8 | buffer[0]) * conversionFactor;
     packet.y = static_cast<int16_t>(static_cast<uint16_t>(buffer[3]) << 8 | buffer[2]) * conversionFactor;
     packet.z = static_cast<int16_t>(static_cast<uint16_t>(buffer[5]) << 8 | buffer[4]) * conversionFactor;
+}
+
+bool BMX160::getChipID(uint8_t& chip_id){
+    if(!this->readReg(REGISTER::CHIP_ID,chip_id)){
+        return false;
+    }
+
+    return true;
+}
+
+void BMX160::wait(unsigned long time)
+{
+    delay(time);
 }

@@ -301,6 +301,14 @@ namespace FineTuneBMX160
          */
         [[nodiscard]] bool isConnected();
 
+        /**
+         * @brief Retrieves the chip's id. Correct when == 216 
+         * 
+         * @param chip_id Variable to store read value
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool getChipID(uint8_t& chip_id);
+    
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
         const uint8_t address = UINT8_C(0x68); ///< Sensor address
@@ -320,6 +328,12 @@ namespace FineTuneBMX160
         POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
         POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
         
+
+        /**
+         * @brief Waiting function the library will employ. Can be overwritten with a derived class
+         * 
+         */
+        virtual void wait(unsigned long time);
 
         /**
          * @brief Sends a write command through the I2C protocol
