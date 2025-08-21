@@ -123,7 +123,8 @@ namespace FineTuneBMX160
         I2C_OTHER = UINT8_C(4),
         I2C_TIMEOUT = UINT8_C(5),
         UNINITIALIZED = UINT8_C(6),
-        INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7)
+        INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7),
+        NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(8)
     };
 
 
@@ -189,6 +190,8 @@ namespace FineTuneBMX160
         };
     }
 
+    constexpr float SENSOR_TIME_SENSITIVITY_S = 0.000039f;
+
 
 
     /** @brief Single sensor measurement */
@@ -197,6 +200,7 @@ namespace FineTuneBMX160
         float x; ///< x-axis
         float y; ///< y-axis
         float z; ///< z-axis
+        uint32_t sensortime; ///< Local sensor time, 24 bits with wrapping, 39us/LSB
     } DataPacket;
 
     /**
@@ -318,8 +322,8 @@ namespace FineTuneBMX160
         RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
 
         // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
-        // - burst write
-        // - Write without a 0.4 ms wait
+        // - burst write                    IMPLEMENTED (not supported)
+        // - Write without a 0.4 ms wait    IMPLEMENETED
         // - burst read on FIFO_DATA
         // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
         // - read the FIFO

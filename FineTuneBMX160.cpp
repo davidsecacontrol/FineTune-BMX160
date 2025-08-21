@@ -188,14 +188,27 @@ bool BMX160::setGyroPowerMode(POWER_MODE::GYRO power_mode){
 
 bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
-    uint8_t buffer[20];
-    if(!this->readReg(REGISTER::DATA_0, buffer, 20)){
+    if(this->accelerometer_power_mode          != POWER_MODE::ACCEL::NORMAL &&
+       this->gyroscope_power_mode              != POWER_MODE::GYRO::NORMAL  &&
+       this->magnetometer_interface_power_mode != POWER_MODE::MAGN_INTERFACE::NORMAL){
+
+        this->state = ERROR_CODE::NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER;
+        return false;
+    } 
+    uint8_t buffer[23]; // DATA from 0 to 19,  TIME from 20 to 22
+    if(!this->readReg(REGISTER::DATA_0, buffer, 23)){
         return false;
     };
 
     CopyBufferToDataPacket(accel, &buffer[14], SENSITIVITY::ACCEL[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
     CopyBufferToDataPacket(gyro, &buffer[8], SENSITIVITY::GYRO[static_cast<size_t>(this->gyroscope_range)]);
     CopyBufferToDataPacket(magn, &buffer[0], SENSITIVITY::MAGN[static_cast<size_t>(this->magnetorquer_range)]);
+
+    uint32_t time =  (static_cast<uint32_t>(buffer[22]) << 16) | (static_cast<uint32_t>(buffer[21]) << 8) | buffer[20];
+
+    accel.sensortime = time;
+    gyro.sensortime = time;
+    magn.sensortime = time;
 
     return true;
 }
@@ -235,6 +248,13 @@ bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
     this->Wire.write(&byte, 1);
     this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
 
+    if(this->accelerometer_power_mode          != POWER_MODE::ACCEL::NORMAL &&
+       this->gyroscope_power_mode              != POWER_MODE::GYRO::NORMAL  &&
+       this->magnetometer_interface_power_mode != POWER_MODE::MAGN_INTERFACE::NORMAL){
+
+        this->wait(1); // IIt is required to wait 0.4 ms before writes
+    }
+    
     return this->state == ERROR_CODE::ALL_OK;
 }
 
