@@ -157,16 +157,23 @@ namespace FineTuneBMX160
         /** @brief Allowed accelerometer power modes */
         enum struct ACCEL : int
         {
+            NORMAL = 0,
+            LOW_POWER = 1,
+            SUSPEND = 2
         };
 
         /** @brief Allowed gyroscope power modes */
         enum struct GYRO : int
         {
+            NORMAL = 0,
+            SUSPEND = 1,
+            FAST_STARTUP = 2
         };
 
         /** @brief Allowed magnetometer power modes*/
         enum struct MAGN : int
         {
+
         };
     }
 
@@ -302,6 +309,10 @@ namespace FineTuneBMX160
         RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2; ///< Current accelerometer range
         RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;  ///< Current gyroscope range
         RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
+
+        POWER_MODE::ACCEL accelerometer_power_mode = POWER_MODE::ACCEL::SUSPEND;
+        POWER_MODE::GYRO gyroscope_power_mode = POWER_MODE::GYRO::SUSPEND;
+        
     };
 
 }
