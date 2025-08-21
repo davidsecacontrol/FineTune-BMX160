@@ -106,6 +106,8 @@ bool BMX160::begin()
     state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on magn
     delay(10);
     */
+    this->state = ERROR_CODE::ALL_OK;
+    
     return true;
 }
 

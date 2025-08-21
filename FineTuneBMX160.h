@@ -205,7 +205,10 @@ namespace FineTuneBMX160
     class BMX160
     {
     public:
-
+        /**
+         * @brief BMX60 error status. If different from ALL_OK handle error and clear this variable
+         * 
+         */
         ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
 
         // Initializers --------------------------------------------------------------
@@ -223,7 +226,7 @@ namespace FineTuneBMX160
         /**
          * @brief Power up accelerometer, gyroscope and magnetometer(WIP)
          *
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool begin();
 
@@ -231,7 +234,7 @@ namespace FineTuneBMX160
          * @brief Set specific accelerometer data range
          *
          * @param range Desired range
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool setAccelRange(RANGE::ACCEL range);
 
@@ -239,7 +242,7 @@ namespace FineTuneBMX160
          * @brief Set specific gyroscope data range
          *
          * @param range Desired range
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool setGyroRange(RANGE::GYRO range);
 
@@ -248,7 +251,7 @@ namespace FineTuneBMX160
          * @brief Set the accelerometer power mode. 
          * 
          * @param power_mode 
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
+         * @return bool success/fail status
          */
         [[nodiscard]] bool setAccelPowerMode(POWER_MODE::ACCEL power_mode);
 
@@ -256,7 +259,7 @@ namespace FineTuneBMX160
          * @brief Set the gyroscope power mode. 
          * 
          * @param power_mode 
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
+         * @return bool success/fail status
          */
         [[nodiscard]] bool setGyroPowerMode(POWER_MODE::GYRO power_mode);
 
@@ -265,7 +268,7 @@ namespace FineTuneBMX160
          * 
          * 
          * @param power_mode 
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission 
+         * @return bool success/fail status
          */
         [[nodiscard]] bool setMagnPowerMode(POWER_MODE::MAGN power_mode);
 
@@ -277,7 +280,7 @@ namespace FineTuneBMX160
          * @param accel Object to store accelerometer data
          * @param gyro  Object to store gyroscope data
          * @param magn  Object to store magnetometer data
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
@@ -286,7 +289,7 @@ namespace FineTuneBMX160
          *
          * @param reg Reister to write to
          * @param byte 8-bit value to write
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
 
@@ -295,7 +298,7 @@ namespace FineTuneBMX160
          *
          * @param reg Register to read from
          * @param buffer 8-bit buffer for storing read value
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool readReg(const REGISTER reg, uint8_t &buffer);
 
@@ -305,14 +308,14 @@ namespace FineTuneBMX160
          * @param reg Register to read from
          * @param buffer Pointer to 8-bit buffer of length length
          * @param length Length of buffer buffer
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
          *
-         * @return uint8_t FineTuneBMX160::I2CStatus to identify failed transmission
+         * @return bool success/fail status
          */
         [[nodiscard]] bool isConnected();
 
