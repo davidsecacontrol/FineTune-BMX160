@@ -12,7 +12,7 @@
 
 FineTuneBMX160::BMX160 bmx160(Wire, UINT8_C(0x68));
 
-[[maybe_unused]] FineTuneBMX160::I2C_STATUS _; // For constiously dropping error checking
+[[maybe_unused]] bool _; // For constiously dropping error checking
 
 void setup()
 {
@@ -27,8 +27,8 @@ void setup()
   Wire.setClock(1000000); // Optional, sets I2C to maximum BMX160 can handle
 
   // Check connection (optional) ---------------------------------
-  FineTuneBMX160::I2C_STATUS status = bmx160.isConnected();
-  if (status == FineTuneBMX160::I2C_STATUS::SUCCESS)
+  bool status = bmx160.isConnected();
+  if (status)
   {
     Serial.println("IMU found");
   }
