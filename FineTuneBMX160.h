@@ -292,33 +292,7 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         [[nodiscard]] bool getTemp(float& temp);
-        /**
-         * @brief Sends a write command through the I2C protocol
-         *
-         * @param reg Reister to write to
-         * @param byte 8-bit value to write
-         * @return bool success/fail status
-         */
-        [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
-
-        /**
-         * @brief Requests one byte through the I2C protocol
-         *
-         * @param reg Register to read from
-         * @param buffer 8-bit buffer for storing read value
-         * @return bool success/fail status
-         */
-        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t &buffer);
-
-        /**
-         * @brief Requests a variable number of bytes through the I2C protocol
-         *
-         * @param reg Register to read from
-         * @param buffer Pointer to 8-bit buffer of length length
-         * @param length Length of buffer buffer
-         * @return bool success/fail status
-         */
-        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+        
 
         /**
          * @brief Returns true if IMU acknowledges conenction
@@ -346,6 +320,34 @@ namespace FineTuneBMX160
         POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
         POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
         
+
+        /**
+         * @brief Sends a write command through the I2C protocol
+         *
+         * @param reg Reister to write to
+         * @param byte 8-bit value to write
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
+
+        /**
+         * @brief Requests one byte through the I2C protocol
+         *
+         * @param reg Register to read from
+         * @param buffer 8-bit buffer for storing read value
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t &buffer);
+
+        /**
+         * @brief Requests a variable number of bytes through the I2C protocol
+         *
+         * @param reg Register to read from
+         * @param buffer Pointer to 8-bit buffer of length length
+         * @param length Length of buffer buffer
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
     };
 
 }
