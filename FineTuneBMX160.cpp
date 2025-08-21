@@ -70,12 +70,13 @@ namespace MASK
 
     /** @brief Masks for setting accelerometer power mode*/
     constexpr uint8_t ACCEL_MPU[] = {
-    
+        0b00010001,
+        0b00010010,
+        0b00010000
     };
 
     /** @brief Masks for setting gyroscope power mode*/
     constexpr uint8_t GYRO_MPU[] = {
-
     };
 
     /** @brief Masks for setting magnetometer power mode*/
@@ -88,8 +89,7 @@ BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{ad
 
 I2C_STATUS BMX160::begin()
 {
-    I2C_STATUS state = writeReg(REGISTER::CMD, UINT8_C(0x11)); // Turn on accel
-    delay(10);
+    I2C_STATUS state = setAccelPowerMode(POWER_MODE::ACCEL::NORMAL);// Turn on accel
 
     if (state != I2C_STATUS::SUCCESS)
     {
@@ -141,6 +141,23 @@ I2C_STATUS BMX160::setGyroRange(RANGE::GYRO range)
     DataPacket buffer;
     return getAllData(buffer, buffer, buffer);
 }
+
+I2C_STATUS BMX160::setAccelPowerMode(POWER_MODE::ACCEL power_mode){
+    I2C_STATUS result = writeReg(REGISTER::CMD,MASK::ACCEL_MPU[static_cast<size_t>(power_mode)]);
+    this->accelerometer_power_mode = power_mode;
+
+    switch(power_mode){
+        case POWER_MODE::ACCEL::SUSPEND:
+            delay(1); // Takes 300us to reset MPU
+            break;
+        default:
+            delay(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
+    }
+
+    return result;
+}
+
+
 
 I2C_STATUS BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
