@@ -190,6 +190,33 @@ namespace FineTuneBMX160
         };
     }
 
+    namespace ODR{
+        enum struct ACCEL : int {
+            Hz_25_over_32 = 0,
+            Hz_25_over_16,
+            Hz_25_over_8,
+            Hz25_over_4,
+            Hz25_over_2,
+            Hz25,
+            Hz50,
+            Hz100,
+            Hz200,
+            Hz400,
+            Hz800,
+            Hz1600
+        };
+        enum struct GYRO : int {
+            Hz25 = 0,
+            Hz50,
+            Hz100,
+            Hz200,
+            Hz400,
+            Hz800,
+            Hz1600,
+            Hz3200,
+        };
+    }
+
     constexpr float SENSOR_TIME_SENSITIVITY_S = 0.000039f;
 
 
@@ -313,6 +340,38 @@ namespace FineTuneBMX160
          */
         [[nodiscard]] bool getChipID(uint8_t& chip_id);
     
+        /**
+         * @brief Sets data rate for the accelerometer. Note that in normal mode only 32/2Hz until 1600Hz are allowed. Oversampling and low_power mode not implemented
+         * 
+         * @param odr Unsigned integer used to compute frequency
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool setAccelOdr(const ODR::ACCEL odr);
+
+        /**
+         * @brief Copies to odr the chosen sampling frequency for the accelerometer
+         * 
+         * @param odr 
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool getAccelOdr(ODR::ACCEL odr);
+
+        /**
+         * @brief Sets data rate for the gyroscope. Note that only 25Hz until 3200Hz are allowed. Oversampling is not implemented
+         * 
+         * @param odr Unsigned integer used to compute frequency
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool setGyroOdr(const ODR::GYRO odr);
+
+        /**
+         * @brief Copies to odr the chosen sampling frequency for the gyroscope
+         * 
+         * @param odr 
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool getGyroOdr(ODR::GYRO odr);
+        
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
         const uint8_t address = UINT8_C(0x68); ///< Sensor address
@@ -324,14 +383,15 @@ namespace FineTuneBMX160
         // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
         // - burst write                    IMPLEMENTED (not supported)
         // - Write without a 0.4 ms wait    IMPLEMENETED
-        // - burst read on FIFO_DATA
+        // - burst read on FIFO_DATA        IMPLEMENTED
         // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
         // - read the FIFO
         POWER_MODE::ACCEL accelerometer_power_mode = POWER_MODE::ACCEL::SUSPEND;
         POWER_MODE::GYRO gyroscope_power_mode = POWER_MODE::GYRO::SUSPEND;
         POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
         POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
-        
+        ODR::ACCEL accelerometer_odr = ODR::ACCEL::Hz100; 
+        ODR::GYRO gyroscope_odr = ODR::GYRO::Hz100;
 
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
