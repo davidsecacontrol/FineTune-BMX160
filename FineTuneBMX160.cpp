@@ -91,6 +91,21 @@ namespace MASK
     constexpr uint8_t MAGN_MPU[] = {
 
     };
+
+    const uint8_t ACCEL_ODR[] = {
+        UINT8_C(1),
+        UINT8_C(2),
+        UINT8_C(3),
+        UINT8_C(4),
+        UINT8_C(5),
+        UINT8_C(6),
+        UINT8_C(7),
+        UINT8_C(8),
+        UINT8_C(9),
+        UINT8_C(10),
+        UINT8_C(11),
+        UINT8_C(12)
+    };
 }
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};
@@ -240,6 +255,74 @@ bool BMX160::getTemp(float& temp){
 
     return true;
 }
+
+
+bool BMX160::setAccelOdr(const ODR::ACCEL odr){
+    // Check if correct odr -----------------------------
+    if(odr > ODR::ACCEL::Hz1600 || odr < ODR::ACCEL::Hz_25_over_32){ // ODR codeoutside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
+    
+    if(this->accelerometer_power_mode == POWER_MODE::ACCEL::NORMAL){
+        if(odr > ODR::ACCEL::Hz1600 || odr < ODR::ACCEL::Hz25_over_2){  // ODR not allowed in normal mode
+            this->state = ERROR_CODE::INVALID_ODR_SETTING;
+            return false;
+        }
+    }
+    
+    // Transform from ODR::ACCEL to mask -------------------------------------------------------
+    uint8_t mask = 0b00100000; // 0 (no undersampling) 010 (normal mode) 0000 (odr, to be filled)
+
+    mask = mask | MASK::ACCEL_ODR[static_cast<size_t>(odr)];
+
+    // Write to IMU -------------------------------------------------------------------------------
+    if(!writeReg(REGISTER::ACC_CONF,mask)){
+        return false;
+    }
+
+    // Check if error flag is set (occurs if ODR is not allowed) ----------------------------------
+
+    uint8_t byte_read = 0;
+    if(!readReg(REGISTER::ERR_REG,byte_read)){
+        return false;
+    }
+
+    byte_read = (byte_read & 0b00011110) >> 1; // Masking the error
+    if(byte_read != 0){
+        this->state = ERROR_CODE::ERR_REG;
+        return false;
+    }
+
+    // All good -> update local state -------------------------------------------------------
+    this->accelerometer_odr = odr;
+
+    return true;
+}
+
+
+
+
+bool BMX160::getAccelOdr(ODR::ACCEL& odr){
+    
+    uint8_t byte;
+    if(!readReg(REGISTER::ACC_CONF,byte)){
+        return false;
+    }
+
+    byte = byte & 0b00001111; // Mask for only the odr bits
+    odr = static_cast<ODR::ACCEL>(byte-1); 
+
+    return true;
+}
+
+bool BMX160::getErrorRegister(uint8_t& error_code){
+    if(!readReg(REGISTER::ERR_REG,error_code)){
+        return false;
+    }
+    return true;
+}
+
 
 bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
 {

@@ -124,7 +124,9 @@ namespace FineTuneBMX160
         I2C_TIMEOUT = UINT8_C(5),
         UNINITIALIZED = UINT8_C(6),
         INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7),
-        NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(8)
+        NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(8),
+        INVALID_ODR_SETTING = UINT8_C(9),
+        ERR_REG = UINT8_C(10)
     };
 
 
@@ -193,17 +195,17 @@ namespace FineTuneBMX160
     namespace ODR{
         enum struct ACCEL : int {
             Hz_25_over_32 = 0,
-            Hz_25_over_16,
-            Hz_25_over_8,
-            Hz25_over_4,
-            Hz25_over_2,
-            Hz25,
-            Hz50,
-            Hz100,
-            Hz200,
-            Hz400,
-            Hz800,
-            Hz1600
+            Hz_25_over_16 = 1,
+            Hz_25_over_8 = 2,
+            Hz25_over_4 = 3,
+            Hz25_over_2 = 4,
+            Hz25 = 5,
+            Hz50 = 6,
+            Hz100 = 7,
+            Hz200 = 8,
+            Hz400 = 9,
+            Hz800 = 10,
+            Hz1600 = 11
         };
         enum struct GYRO : int {
             Hz25 = 0,
@@ -354,7 +356,7 @@ namespace FineTuneBMX160
          * @param odr 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getAccelOdr(ODR::ACCEL odr);
+        [[nodiscard]] bool getAccelOdr(ODR::ACCEL& odr);
 
         /**
          * @brief Sets data rate for the gyroscope. Note that only 25Hz until 3200Hz are allowed. Oversampling is not implemented
@@ -371,6 +373,8 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         [[nodiscard]] bool getGyroOdr(ODR::GYRO odr);
+
+        [[nodiscard]] bool getErrorRegister(uint8_t& error_code);
         
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
