@@ -209,13 +209,13 @@ namespace FineTuneBMX160
         };
         enum struct GYRO : int {
             Hz25 = 0,
-            Hz50,
-            Hz100,
-            Hz200,
-            Hz400,
-            Hz800,
-            Hz1600,
-            Hz3200,
+            Hz50 = 1,
+            Hz100 = 2,
+            Hz200 = 3,
+            Hz400 = 4,
+            Hz800 = 5,
+            Hz1600 = 6,
+            Hz3200 = 7
         };
     }
 
@@ -372,7 +372,7 @@ namespace FineTuneBMX160
          * @param odr 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getGyroOdr(ODR::GYRO odr);
+        [[nodiscard]] bool getGyroOdr(ODR::GYRO& odr);
 
         [[nodiscard]] bool getErrorRegister(uint8_t& error_code);
         

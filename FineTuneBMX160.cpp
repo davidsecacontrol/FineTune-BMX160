@@ -106,6 +106,16 @@ namespace MASK
         UINT8_C(11),
         UINT8_C(12)
     };
+    const uint8_t GYRO_ODR[] = {
+        UINT8_C(6),
+        UINT8_C(7),
+        UINT8_C(8),
+        UINT8_C(9),
+        UINT8_C(10),
+        UINT8_C(11),
+        UINT8_C(12),
+        UINT8_C(13)
+    };
 }
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};
@@ -312,6 +322,56 @@ bool BMX160::getAccelOdr(ODR::ACCEL& odr){
 
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<ODR::ACCEL>(byte-MASK::ACCEL_ODR[0]); 
+
+    return true;
+}
+
+bool BMX160::setGyroOdr(const ODR::GYRO odr){
+    // Check if correct odr -----------------------------
+    if(odr > ODR::GYRO::Hz3200 || odr < ODR::GYRO::Hz25){ // ODR codeoutside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
+    
+
+    
+    // Transform from ODR::GYRO to mask -------------------------------------------------------
+    uint8_t mask = 0b00100000; // 0 (reserved, datasheet specifies "00", prob an error) 010 (normal mode) 0000 (odr, to be filled)
+
+    mask = mask | MASK::GYRO_ODR[static_cast<size_t>(odr)];
+
+    // Write to IMU -------------------------------------------------------------------------------
+    if(!writeReg(REGISTER::GYR_CONF,mask)){
+        return false;
+    }
+
+    // Check if error flag is set (occurs if ODR is not allowed) ----------------------------------
+
+    uint8_t byte_read = 0;
+    if(!readReg(REGISTER::ERR_REG,byte_read)){
+        return false;
+    }
+
+    byte_read = (byte_read & 0b00011110) >> 1; // Masking the error
+    if(byte_read != 0){
+        this->state = ERROR_CODE::ERR_REG;
+        return false;
+    }
+
+    // All good -> update local state -------------------------------------------------------
+    this->gyroscope_odr = odr;
+
+    return true;
+}
+
+bool BMX160::getGyroOdr(ODR::GYRO& odr){
+    uint8_t byte;
+    if(!readReg(REGISTER::GYR_CONF,byte)){
+        return false;
+    }
+
+    byte = byte & 0b00001111; // Mask for only the odr bits
+    odr = static_cast<ODR::GYRO>(byte-MASK::GYRO_ODR[0]); 
 
     return true;
 }
