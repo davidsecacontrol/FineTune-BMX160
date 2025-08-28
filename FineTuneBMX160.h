@@ -129,6 +129,102 @@ namespace FineTuneBMX160
         ERR_REG = UINT8_C(10)
     };
 
+    namespace ACCEL{
+
+        /** @brief Allowed accelerometer power modes */
+        enum struct RANGE : int
+        {
+            G2 = 0,
+            G4 = 1,
+            G8 = 2,
+            G16 = 3
+        };
+        
+        /** @brief Allowed accelerometer power modes */
+        enum struct POWER_MODE : int
+        {
+            NORMAL = 0,
+            LOW_POWER = 1,
+            SUSPEND = 2
+        };
+
+
+        enum struct ODR : int 
+        {
+            Hz25_over_32 = 0,
+            Hz25_over_16 = 1,
+            Hz25_over_8 = 2,
+            Hz25_over_4 = 3,
+            Hz25_over_2 = 4,
+            Hz25 = 5,
+            Hz50 = 6,
+            Hz100 = 7,
+            Hz200 = 8,
+            Hz400 = 9,
+            Hz800 = 10,
+            Hz1600 = 11
+        };
+    }
+
+    namespace GYRO{
+
+        /** @brief Allowed gyroscope ranges */
+        enum struct RANGE : int
+        {
+            DPS2000 = 0,
+            DPS1000 = 1,
+            DPS500 = 2,
+            DPS250 = 3,
+            DPS150 = 4
+        };
+
+        /** @brief Allowed gyroscope power modes */
+        enum struct POWER_MODE : int
+        {
+            NORMAL = 0,
+            FAST_STARTUP = 1,
+            SUSPEND = 2
+        };
+
+        enum struct ODR : int 
+        {
+            Hz25 = 0,
+            Hz50 = 1,
+            Hz100 = 2,
+            Hz200 = 3,
+            Hz400 = 4,
+            Hz800 = 5,
+            Hz1600 = 6,
+            Hz3200 = 7
+        };
+    }
+
+
+    namespace MAGN{
+
+        /** @brief Allowed magnetometer range*/
+        enum struct RANGE : int{
+            uT0_3 = 0
+        };
+
+        /** @brief Allowed magnetometer power modes*/
+        enum struct POWER_MODE : int
+        {
+            FORCE = 0,
+            SLEEP = 1,
+            SUSPEND = 2
+        };
+    }
+
+    namespace MAGN_INTERFACE{
+
+        enum struct POWER_MODE : int
+        {
+            NORMAL = 0,
+            LOW_POWER = 1,
+            SUSPEND = 2
+        };
+    }
 
     namespace RANGE
     {
