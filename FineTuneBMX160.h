@@ -280,7 +280,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelRange(RANGE::ACCEL range);
+        [[nodiscard]] bool setAccelRange(ACCEL::RANGE range);
 
         /**
          * @brief Set specific gyroscope data range
@@ -288,7 +288,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroRange(RANGE::GYRO range);
+        [[nodiscard]] bool setGyroRange(GYRO::RANGE range);
 
 
         /**
@@ -297,7 +297,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelPowerMode(POWER_MODE::ACCEL power_mode);
+        [[nodiscard]] bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
 
         /**
          * @brief Set the gyroscope power mode. 
@@ -305,7 +305,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroPowerMode(POWER_MODE::GYRO power_mode);
+        [[nodiscard]] bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
 
         /**
          * @brief Set the magnetometer power mode
@@ -314,7 +314,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setMagnPowerMode(POWER_MODE::MAGN power_mode);
+        [[nodiscard]] bool setMagnPowerMode(MAGN::POWER_MODE power_mode);
 
 
 
@@ -358,7 +358,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelOdr(const ODR::ACCEL odr);
+        [[nodiscard]] bool setAccelOdr(const ACCEL::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the accelerometer
@@ -366,7 +366,7 @@ namespace FineTuneBMX160
          * @param odr 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getAccelOdr(ODR::ACCEL& odr);
+        [[nodiscard]] bool getAccelOdr(ACCEL::ODR& odr);
 
         /**
          * @brief Sets data rate for the gyroscope. Note that only 25Hz until 3200Hz are allowed. Oversampling is not implemented
@@ -374,7 +374,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroOdr(const ODR::GYRO odr);
+        [[nodiscard]] bool setGyroOdr(const GYRO::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the gyroscope
@@ -382,7 +382,7 @@ namespace FineTuneBMX160
          * @param odr 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getGyroOdr(ODR::GYRO& odr);
+        [[nodiscard]] bool getGyroOdr(GYRO::ODR& odr);
 
         [[nodiscard]] bool getErrorRegister(uint8_t& error_code);
         
@@ -390,9 +390,9 @@ namespace FineTuneBMX160
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
         const uint8_t address = UINT8_C(0x68); ///< Sensor address
 
-        RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2; ///< Current accelerometer range
-        RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;  ///< Current gyroscope range
-        RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
+        ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
+        GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
+        MAGN::RANGE magnetorquer_range = MAGN::RANGE::uT0_3; ///< Current magnetometer range
 
         // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
         // - burst write                    IMPLEMENTED (not supported)
@@ -400,12 +400,12 @@ namespace FineTuneBMX160
         // - burst read on FIFO_DATA        IMPLEMENTED
         // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
         // - read the FIFO
-        POWER_MODE::ACCEL accelerometer_power_mode = POWER_MODE::ACCEL::SUSPEND;
-        POWER_MODE::GYRO gyroscope_power_mode = POWER_MODE::GYRO::SUSPEND;
-        POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
-        POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
-        ODR::ACCEL accelerometer_odr = ODR::ACCEL::Hz100; 
-        ODR::GYRO gyroscope_odr = ODR::GYRO::Hz100;
+        ACCEL::POWER_MODE accelerometer_power_mode = ACCEL::POWER_MODE::SUSPEND;
+        GYRO::POWER_MODE gyroscope_power_mode = GYRO::POWER_MODE::SUSPEND;
+        MAGN::POWER_MODE magnetometer_power_mode = MAGN::POWER_MODE::SUSPEND;
+        MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
+        ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100; 
+        GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100;
 
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
