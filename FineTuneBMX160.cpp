@@ -311,7 +311,7 @@ bool BMX160::getAccelOdr(ODR::ACCEL& odr){
     }
 
     byte = byte & 0b00001111; // Mask for only the odr bits
-    odr = static_cast<ODR::ACCEL>(byte-1); 
+    odr = static_cast<ODR::ACCEL>(byte-MASK::ACCEL_ODR[0]); 
 
     return true;
 }
