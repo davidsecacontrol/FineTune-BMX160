@@ -131,38 +131,38 @@ namespace FineTuneBMX160
 
     namespace ACCEL{
 
-        /** @brief Allowed accelerometer power modes */
-        enum struct RANGE : int
+        /** @brief Allowed accelerometer ranges. Values represent mask */
+        enum struct RANGE : uint8_t
         {
-            G2 = 0,
-            G4 = 1,
-            G8 = 2,
-            G16 = 3
+            G2  = 0b00000011,
+            G4  = 0b00000101,
+            G8  = 0b00001000,
+            G16 = 0b00001100
         };
         
-        /** @brief Allowed accelerometer power modes */
-        enum struct POWER_MODE : int
+        /** @brief Allowed accelerometer power modes. Values represent the mask */
+        enum struct POWER_MODE : uint8_t
         {
-            NORMAL = 0,
-            LOW_POWER = 1,
-            SUSPEND = 2
+            NORMAL = 0b00010001,
+            LOW_POWER = 0b00010010,
+            SUSPEND = 0b00010000
         };
 
 
-        enum struct ODR : int 
+        enum struct ODR : uint8_t 
         {
-            Hz25_over_32 = 0,
-            Hz25_over_16 = 1,
-            Hz25_over_8 = 2,
-            Hz25_over_4 = 3,
-            Hz25_over_2 = 4,
-            Hz25 = 5,
-            Hz50 = 6,
-            Hz100 = 7,
-            Hz200 = 8,
-            Hz400 = 9,
-            Hz800 = 10,
-            Hz1600 = 11
+            Hz25_over_32 = UINT8_C(1),
+            Hz25_over_16 = UINT8_C(2),
+            Hz25_over_8  = UINT8_C(3),
+            Hz25_over_4  = UINT8_C(4),
+            Hz25_over_2  = UINT8_C(5),
+            Hz25 = UINT8_C(6),
+            Hz50 = UINT8_C(7),
+            Hz100 = UINT8_C(8),
+            Hz200 = UINT8_C(9),
+            Hz400 = UINT8_C(10),
+            Hz800 = UINT8_C(11),
+            Hz1600 = UINT8_C(12)
         };
 
     /** @brief Accelerometer sensitivity presets*/
@@ -176,34 +176,34 @@ namespace FineTuneBMX160
 
     namespace GYRO{
 
-        /** @brief Allowed gyroscope ranges */
-        enum struct RANGE : int
+        /** @brief Allowed gyroscope ranges. Values represent mask */
+        enum struct RANGE : uint8_t
         {
-            DPS2000 = 0,
-            DPS1000 = 1,
-            DPS500 = 2,
-            DPS250 = 3,
-            DPS150 = 4
+            DPS2000 = 0b00000000,
+            DPS1000 = 0b00000001,
+            DPS500 = 0b00000010,
+            DPS250 = 0b00000011,
+            DPS150 = 0b00000100
         };
 
-        /** @brief Allowed gyroscope power modes */
-        enum struct POWER_MODE : int
+        /** @brief Allowed gyroscope power modes. Values represent mask */
+        enum struct POWER_MODE : uint8_t
         {
-            NORMAL = 0,
-            FAST_STARTUP = 1,
-            SUSPEND = 2
+            NORMAL = 0b00010101,
+            FAST_STARTUP = 0b00010111,
+            SUSPEND = 0b00010100
         };
 
         enum struct ODR : int 
         {
-            Hz25 = 0,
-            Hz50 = 1,
-            Hz100 = 2,
-            Hz200 = 3,
-            Hz400 = 4,
-            Hz800 = 5,
-            Hz1600 = 6,
-            Hz3200 = 7
+            Hz25 = UINT8_C(6),
+            Hz50 = UINT8_C(7),
+            Hz100 = UINT8_C(8),
+            Hz200 = UINT8_C(9),
+            Hz400 = UINT8_C(10),
+            Hz800 = UINT8_C(11),
+            Hz1600 = UINT8_C(12),
+            Hz3200 = UINT8_C(13)
         };
 
         /** @brief Gyroscope sensisitivy presets*/

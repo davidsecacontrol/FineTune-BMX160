@@ -28,69 +28,6 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
 constexpr float G_TO_MS2 = 9.80665f;
 
 
-namespace MASK
-{
-    /** @brief Masks for setting accelerometer range*/
-    constexpr uint8_t ACCEL_RANGE[] = {
-        0b00000011,
-        0b00000101,
-        0b00001000,
-        0b00001100
-    };
-
-    /** @brief Masks for setting gyroscope range*/
-    constexpr uint8_t GYRO_RANGE[] = {
-        0b00000000,
-        0b00000001,
-        0b00000010,
-        0b00000011,
-        0b00000100
-    };
-
-    /** @brief Masks for setting accelerometer power mode*/
-    constexpr uint8_t ACCEL_MPU[] = {
-        0b00010001,
-        0b00010010,
-        0b00010000
-    };
-
-    /** @brief Masks for setting gyroscope power mode*/
-    constexpr uint8_t GYRO_MPU[] = {
-        0b00010101,
-        0b00010111,
-        0b00010100
-    };
-
-    /** @brief Masks for setting magnetometer power mode*/
-    constexpr uint8_t MAGN_MPU[] = {
-
-    };
-
-    const uint8_t ACCEL_ODR[] = {
-        UINT8_C(1),
-        UINT8_C(2),
-        UINT8_C(3),
-        UINT8_C(4),
-        UINT8_C(5),
-        UINT8_C(6),
-        UINT8_C(7),
-        UINT8_C(8),
-        UINT8_C(9),
-        UINT8_C(10),
-        UINT8_C(11),
-        UINT8_C(12)
-    };
-    const uint8_t GYRO_ODR[] = {
-        UINT8_C(6),
-        UINT8_C(7),
-        UINT8_C(8),
-        UINT8_C(9),
-        UINT8_C(10),
-        UINT8_C(11),
-        UINT8_C(12),
-        UINT8_C(13)
-    };
-}
 
 BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};
 
@@ -117,7 +54,7 @@ bool BMX160::begin()
 
 bool BMX160::setAccelRange(ACCEL::RANGE range)
 {
-    if(!this->writeReg(REGISTER::ACC_RANGE, MASK::ACCEL_RANGE[static_cast<size_t>(range)]))
+    if(!this->writeReg(REGISTER::ACC_RANGE, static_cast<uint8_t>(range)))
     {
         return false;
     }
@@ -135,7 +72,7 @@ bool BMX160::setAccelRange(ACCEL::RANGE range)
 bool BMX160::setGyroRange(GYRO::RANGE range)
 {
 
-    if(!this->writeReg(REGISTER::GYR_RANGE, MASK::GYRO_RANGE[static_cast<size_t>(range)]))
+    if(!this->writeReg(REGISTER::GYR_RANGE, static_cast<uint8_t>(range)))
     {
         return false;
     }
@@ -150,7 +87,7 @@ bool BMX160::setGyroRange(GYRO::RANGE range)
 }
 
 bool BMX160::setAccelPowerMode(ACCEL::POWER_MODE power_mode){
-    if(!this->writeReg(REGISTER::CMD,MASK::ACCEL_MPU[static_cast<size_t>(power_mode)])){
+    if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(power_mode))){
         return false;
     }
     this->accelerometer_power_mode = power_mode;
@@ -167,7 +104,7 @@ bool BMX160::setAccelPowerMode(ACCEL::POWER_MODE power_mode){
 }
 
 bool BMX160::setGyroPowerMode(GYRO::POWER_MODE power_mode){
-    if(!this->writeReg(REGISTER::CMD,MASK::GYRO_MPU[static_cast<size_t>(power_mode)])){
+    if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(power_mode))){
         return false;
     }
 
@@ -258,7 +195,7 @@ bool BMX160::setAccelOdr(const ACCEL::ODR odr){
     // Transform from ACCEL::ODR to mask -------------------------------------------------------
     uint8_t mask = 0b00100000; // 0 (no undersampling) 010 (normal mode) 0000 (odr, to be filled)
 
-    mask = mask | MASK::ACCEL_ODR[static_cast<size_t>(odr)];
+    mask = mask | static_cast<uint8_t>(odr);
 
     // Write to IMU -------------------------------------------------------------------------------
     if(!writeReg(REGISTER::ACC_CONF,mask)){
@@ -295,7 +232,7 @@ bool BMX160::getAccelOdr(ACCEL::ODR& odr){
     }
 
     byte = byte & 0b00001111; // Mask for only the odr bits
-    odr = static_cast<ACCEL::ODR>(byte-MASK::ACCEL_ODR[0]); 
+    odr = static_cast<ACCEL::ODR>(byte); 
 
     return true;
 }
@@ -312,7 +249,7 @@ bool BMX160::setGyroOdr(const GYRO::ODR odr){
     // Transform from GYRO::ODR to mask -------------------------------------------------------
     uint8_t mask = 0b00100000; // 0 (reserved, datasheet specifies "00", prob an error) 010 (normal mode) 0000 (odr, to be filled)
 
-    mask = mask | MASK::GYRO_ODR[static_cast<size_t>(odr)];
+    mask = mask | static_cast<uint8_t>(odr);
 
     // Write to IMU -------------------------------------------------------------------------------
     if(!writeReg(REGISTER::GYR_CONF,mask)){
@@ -345,7 +282,7 @@ bool BMX160::getGyroOdr(GYRO::ODR& odr){
     }
 
     byte = byte & 0b00001111; // Mask for only the odr bits
-    odr = static_cast<GYRO::ODR>(byte-MASK::GYRO_ODR[0]); 
+    odr = static_cast<GYRO::ODR>(byte); 
 
     return true;
 }
