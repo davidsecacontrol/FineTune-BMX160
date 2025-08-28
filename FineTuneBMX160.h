@@ -194,9 +194,9 @@ namespace FineTuneBMX160
 
     namespace ODR{
         enum struct ACCEL : int {
-            Hz_25_over_32 = 0,
-            Hz_25_over_16 = 1,
-            Hz_25_over_8 = 2,
+            Hz25_over_32 = 0,
+            Hz25_over_16 = 1,
+            Hz25_over_8 = 2,
             Hz25_over_4 = 3,
             Hz25_over_2 = 4,
             Hz25 = 5,

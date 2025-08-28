@@ -259,7 +259,7 @@ bool BMX160::getTemp(float& temp){
 
 bool BMX160::setAccelOdr(const ODR::ACCEL odr){
     // Check if correct odr -----------------------------
-    if(odr > ODR::ACCEL::Hz1600 || odr < ODR::ACCEL::Hz_25_over_32){ // ODR codeoutside of defined values
+    if(odr > ODR::ACCEL::Hz1600 || odr < ODR::ACCEL::Hz25_over_32){ // ODR codeoutside of defined values
         this->state = ERROR_CODE::INVALID_ODR_SETTING;
         return false;
     }
