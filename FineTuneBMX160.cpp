@@ -28,32 +28,6 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
 constexpr float G_TO_MS2 = 9.80665f;
 
 
-namespace SENSITIVITY
-{
-    /** @brief Accelerometer sensitivity presets*/
-    constexpr float ACCEL[] = {
-        1.0f / 16384,
-        1.0f / 8192,
-        1.0f / 4096,
-        1.0f / 2048};
-
-    /** @brief Gyroscope sensisitivy presets*/
-    constexpr float GYRO[] = {
-        1.0f / 16.4f,
-        1.0f / 32.8f,
-        1.0f / 65.6f,
-        1.0f / 131.2f};
-
-    /** @brief Magnetometer sensitivity presets*/
-    constexpr float MAGN[] = {
-        0.3f
-    };
-    /** @brief Temperature sensor sensitivity presets */
-    constexpr float TEMP[] = {
-        1.0f/512.0f
-    };
-}
-
 namespace MASK
 {
     /** @brief Masks for setting accelerometer range*/
@@ -225,9 +199,9 @@ bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
         return false;
     };
 
-    CopyBufferToDataPacket(accel, &buffer[14], SENSITIVITY::ACCEL[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
-    CopyBufferToDataPacket(gyro, &buffer[8], SENSITIVITY::GYRO[static_cast<size_t>(this->gyroscope_range)]);
-    CopyBufferToDataPacket(magn, &buffer[0], SENSITIVITY::MAGN[static_cast<size_t>(this->magnetorquer_range)]);
+    CopyBufferToDataPacket(accel, &buffer[14], ACCEL::SENSITIVITY[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
+    CopyBufferToDataPacket(gyro, &buffer[8], GYRO::SENSITIVITY[static_cast<size_t>(this->gyroscope_range)]);
+    CopyBufferToDataPacket(magn, &buffer[0], MAGN::SENSITIVITY[static_cast<size_t>(this->magnetorquer_range)]);
 
     uint32_t time =  (static_cast<uint32_t>(buffer[22]) << 16) | (static_cast<uint32_t>(buffer[21]) << 8) | buffer[20];
 
@@ -261,7 +235,7 @@ bool BMX160::getTemp(float& temp){
         return false;
     }
 
-    temp = static_cast<int16_t>(raw_data) * SENSITIVITY::TEMP[0]+OFFSET;
+    temp = static_cast<int16_t>(raw_data) * TEMP_SENSOR::SENSITIVITY[0]+OFFSET;
 
     return true;
 }

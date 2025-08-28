@@ -164,6 +164,14 @@ namespace FineTuneBMX160
             Hz800 = 10,
             Hz1600 = 11
         };
+
+    /** @brief Accelerometer sensitivity presets*/
+    constexpr float SENSITIVITY[] = {
+        1.0f / 16384,
+        1.0f / 8192,
+        1.0f / 4096,
+        1.0f / 2048
+    };
     }
 
     namespace GYRO{
@@ -197,6 +205,14 @@ namespace FineTuneBMX160
             Hz1600 = 6,
             Hz3200 = 7
         };
+
+        /** @brief Gyroscope sensisitivy presets*/
+        constexpr float SENSITIVITY[] = {
+        1.0f / 16.4f,
+        1.0f / 32.8f,
+        1.0f / 65.6f,
+        1.0f / 131.2f
+    };
     }
 
 
@@ -214,6 +230,11 @@ namespace FineTuneBMX160
             SLEEP = 1,
             SUSPEND = 2
         };
+
+        /** @brief Magnetometer sensitivity presets*/
+        constexpr float SENSITIVITY[] = {
+            0.3f
+        };
     }
 
     namespace MAGN_INTERFACE{
@@ -227,9 +248,18 @@ namespace FineTuneBMX160
     }
 
     namespace TIMESTAMPS{
-        constexpr float SENSITIVITY_S = 0.000039f;
+        /** @brief Timestamps sensitivity presets in seconds */
+        constexpr float SENSITIVITY[] = {
+            0.000039f
+        };
     }
 
+    namespace TEMP_SENSOR{
+        /** @brief Temperature sensor sensitivity presets in ºC*/
+        constexpr float SENSITIVITY[] = {
+            1.0f/512.0f
+        };
+    }
 
 
 
