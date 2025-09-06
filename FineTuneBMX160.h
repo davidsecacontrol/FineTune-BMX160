@@ -194,7 +194,7 @@ namespace FineTuneBMX160
             SUSPEND = 0b00010100
         };
 
-        enum struct ODR : int 
+        enum struct ODR : uint8_t 
         {
             Hz25 = UINT8_C(6),
             Hz50 = UINT8_C(7),
