@@ -129,62 +129,117 @@ namespace FineTuneBMX160
         ERR_REG = UINT8_C(10)
     };
 
+    namespace ACCEL{
 
-    namespace RANGE
-    {
-        /** @brief Allowed accelerometer ranges */
-        enum struct ACCEL : int
+        /** @brief Allowed accelerometer ranges. Values represent mask */
+        enum struct RANGE : uint8_t
         {
-            G2 = 0,
-            G4 = 1,
-            G8 = 2,
-            G16 = 3
+            G2  = 0b00000011,
+            G4  = 0b00000101,
+            G8  = 0b00001000,
+            G16 = 0b00001100
+        };
+        
+        /** @brief Allowed accelerometer power modes. Values represent the mask */
+        enum struct POWER_MODE : uint8_t
+        {
+            NORMAL = 0b00010001,
+            LOW_POWER = 0b00010010,
+            SUSPEND = 0b00010000
         };
 
-        /** @brief Allowed gyroscope ranges */
-        enum struct GYRO : int
+
+        enum struct ODR : uint8_t 
         {
-            DPS2000 = 0,
-            DPS1000 = 1,
-            DPS500 = 2,
-            DPS250 = 3,
-            DPS150 = 4
+            Hz25_over_32 = UINT8_C(1),
+            Hz25_over_16 = UINT8_C(2),
+            Hz25_over_8  = UINT8_C(3),
+            Hz25_over_4  = UINT8_C(4),
+            Hz25_over_2  = UINT8_C(5),
+            Hz25 = UINT8_C(6),
+            Hz50 = UINT8_C(7),
+            Hz100 = UINT8_C(8),
+            Hz200 = UINT8_C(9),
+            Hz400 = UINT8_C(10),
+            Hz800 = UINT8_C(11),
+            Hz1600 = UINT8_C(12)
         };
 
-        /** @brief Allowed magnetometer range*/
-        enum struct MAGN : int
-        {
-            uT0_3 = 0
-        };
+    /** @brief Accelerometer sensitivity presets*/
+    constexpr float SENSITIVITY[] = {
+        1.0f / 16384,
+        1.0f / 8192,
+        1.0f / 4096,
+        1.0f / 2048
+    };
     }
 
-    namespace POWER_MODE
-    {
-        /** @brief Allowed accelerometer power modes */
-        enum struct ACCEL : int
+    namespace GYRO{
+
+        /** @brief Allowed gyroscope ranges. Values represent mask */
+        enum struct RANGE : uint8_t
         {
-            NORMAL = 0,
-            LOW_POWER = 1,
-            SUSPEND = 2
+            DPS2000 = 0b00000000,
+            DPS1000 = 0b00000001,
+            DPS500 = 0b00000010,
+            DPS250 = 0b00000011,
+            DPS150 = 0b00000100
         };
 
-        /** @brief Allowed gyroscope power modes */
-        enum struct GYRO : int
+        /** @brief Allowed gyroscope power modes. Values represent mask */
+        enum struct POWER_MODE : uint8_t
         {
-            NORMAL = 0,
-            FAST_STARTUP = 1,
-            SUSPEND = 2
+            NORMAL = 0b00010101,
+            FAST_STARTUP = 0b00010111,
+            SUSPEND = 0b00010100
+        };
+
+        enum struct ODR : int 
+        {
+            Hz25 = UINT8_C(6),
+            Hz50 = UINT8_C(7),
+            Hz100 = UINT8_C(8),
+            Hz200 = UINT8_C(9),
+            Hz400 = UINT8_C(10),
+            Hz800 = UINT8_C(11),
+            Hz1600 = UINT8_C(12),
+            Hz3200 = UINT8_C(13)
+        };
+
+        /** @brief Gyroscope sensisitivy presets*/
+        constexpr float SENSITIVITY[] = {
+        1.0f / 16.4f,
+        1.0f / 32.8f,
+        1.0f / 65.6f,
+        1.0f / 131.2f
+    };
+    }
+
+
+    namespace MAGN{
+
+        /** @brief Allowed magnetometer range*/
+        enum struct RANGE : int{
+            uT0_3 = 0
         };
 
         /** @brief Allowed magnetometer power modes*/
-        enum struct MAGN : int
+        enum struct POWER_MODE : int
         {
             FORCE = 0,
             SLEEP = 1,
             SUSPEND = 2
-
         };
-        enum struct MAGN_INTERFACE : int
+
+        /** @brief Magnetometer sensitivity presets*/
+        constexpr float SENSITIVITY[] = {
+            0.3f
+        };
+    }
+
+    namespace MAGN_INTERFACE{
+
+        enum struct POWER_MODE : int
         {
             NORMAL = 0,
             LOW_POWER = 1,
@@ -192,34 +247,19 @@ namespace FineTuneBMX160
         };
     }
 
-    namespace ODR{
-        enum struct ACCEL : int {
-            Hz25_over_32 = 0,
-            Hz25_over_16 = 1,
-            Hz25_over_8 = 2,
-            Hz25_over_4 = 3,
-            Hz25_over_2 = 4,
-            Hz25 = 5,
-            Hz50 = 6,
-            Hz100 = 7,
-            Hz200 = 8,
-            Hz400 = 9,
-            Hz800 = 10,
-            Hz1600 = 11
-        };
-        enum struct GYRO : int {
-            Hz25 = 0,
-            Hz50 = 1,
-            Hz100 = 2,
-            Hz200 = 3,
-            Hz400 = 4,
-            Hz800 = 5,
-            Hz1600 = 6,
-            Hz3200 = 7
+    namespace TIMESTAMPS{
+        /** @brief Timestamps sensitivity presets in seconds */
+        constexpr float SENSITIVITY[] = {
+            0.000039f
         };
     }
 
-    constexpr float SENSOR_TIME_SENSITIVITY_S = 0.000039f;
+    namespace TEMP_SENSOR{
+        /** @brief Temperature sensor sensitivity presets in ºC*/
+        constexpr float SENSITIVITY[] = {
+            1.0f/512.0f
+        };
+    }
 
 
 
@@ -270,7 +310,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelRange(RANGE::ACCEL range);
+        [[nodiscard]] bool setAccelRange(ACCEL::RANGE range);
 
         /**
          * @brief Set specific gyroscope data range
@@ -278,7 +318,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroRange(RANGE::GYRO range);
+        [[nodiscard]] bool setGyroRange(GYRO::RANGE range);
 
 
         /**
@@ -287,7 +327,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelPowerMode(POWER_MODE::ACCEL power_mode);
+        [[nodiscard]] bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
 
         /**
          * @brief Set the gyroscope power mode. 
@@ -295,7 +335,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroPowerMode(POWER_MODE::GYRO power_mode);
+        [[nodiscard]] bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
 
         /**
          * @brief Set the magnetometer power mode
@@ -304,7 +344,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setMagnPowerMode(POWER_MODE::MAGN power_mode);
+        [[nodiscard]] bool setMagnPowerMode(MAGN::POWER_MODE power_mode);
 
 
 
@@ -348,7 +388,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelOdr(const ODR::ACCEL odr);
+        [[nodiscard]] bool setAccelOdr(const ACCEL::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the accelerometer
@@ -356,7 +396,7 @@ namespace FineTuneBMX160
          * @param odr 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getAccelOdr(ODR::ACCEL& odr);
+        [[nodiscard]] bool getAccelOdr(ACCEL::ODR& odr);
 
         /**
          * @brief Sets data rate for the gyroscope. Note that only 25Hz until 3200Hz are allowed. Oversampling is not implemented
@@ -364,7 +404,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroOdr(const ODR::GYRO odr);
+        [[nodiscard]] bool setGyroOdr(const GYRO::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the gyroscope
@@ -372,7 +412,7 @@ namespace FineTuneBMX160
          * @param odr 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getGyroOdr(ODR::GYRO& odr);
+        [[nodiscard]] bool getGyroOdr(GYRO::ODR& odr);
 
         [[nodiscard]] bool getErrorRegister(uint8_t& error_code);
         
@@ -380,9 +420,9 @@ namespace FineTuneBMX160
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
         const uint8_t address = UINT8_C(0x68); ///< Sensor address
 
-        RANGE::ACCEL accelerometer_range = RANGE::ACCEL::G2; ///< Current accelerometer range
-        RANGE::GYRO gyroscope_range = RANGE::GYRO::DPS2000;  ///< Current gyroscope range
-        RANGE::MAGN magnetorquer_range = RANGE::MAGN::uT0_3; ///< Current magnetometer range
+        ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
+        GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
+        MAGN::RANGE magnetorquer_range = MAGN::RANGE::uT0_3; ///< Current magnetometer range
 
         // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
         // - burst write                    IMPLEMENTED (not supported)
@@ -390,12 +430,12 @@ namespace FineTuneBMX160
         // - burst read on FIFO_DATA        IMPLEMENTED
         // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
         // - read the FIFO
-        POWER_MODE::ACCEL accelerometer_power_mode = POWER_MODE::ACCEL::SUSPEND;
-        POWER_MODE::GYRO gyroscope_power_mode = POWER_MODE::GYRO::SUSPEND;
-        POWER_MODE::MAGN magnetometer_power_mode = POWER_MODE::MAGN::SUSPEND;
-        POWER_MODE::MAGN_INTERFACE magnetometer_interface_power_mode = POWER_MODE::MAGN_INTERFACE::SUSPEND;
-        ODR::ACCEL accelerometer_odr = ODR::ACCEL::Hz100; 
-        ODR::GYRO gyroscope_odr = ODR::GYRO::Hz100;
+        ACCEL::POWER_MODE accelerometer_power_mode = ACCEL::POWER_MODE::SUSPEND;
+        GYRO::POWER_MODE gyroscope_power_mode = GYRO::POWER_MODE::SUSPEND;
+        MAGN::POWER_MODE magnetometer_power_mode = MAGN::POWER_MODE::SUSPEND;
+        MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
+        ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100; 
+        GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100;
 
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
