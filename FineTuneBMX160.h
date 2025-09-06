@@ -215,7 +215,10 @@ namespace FineTuneBMX160
     };
     }
 
-
+    /**
+     * @brief Embedded magnetometer chip inside the BMX160. Can be used via indirect addressing
+     * 
+     */
     namespace MAGN{
 
         /** @brief Allowed magnetometer range*/
@@ -237,14 +240,84 @@ namespace FineTuneBMX160
         };
     }
 
+    /**
+     * @brief Interface used for synchronising and using the embedded magnetometer same way as the other sensors.
+     * 
+     */
     namespace MAGN_INTERFACE{
-
-        enum struct POWER_MODE : int
+        /** @brief Allowed magnetometer interface power modes*/
+        enum struct POWER_MODE : int8_t
         {
-            NORMAL = 0,
-            LOW_POWER = 1,
-            SUSPEND = 2
+            NORMAL = 0b00011001,
+            LOW_POWER = 0b00011010,
+            SUSPEND = 0b00011000
         };
+
+        /** @brief Allwed magnetometer ODRs. ODR settings may depend on perset mode (see Table 11 in datasheet) */
+        enum struct ODR : uint8_t
+        {
+            Hz25_over_32 = UINT8_C(1),
+            Hz25_over_16 = UINT8_C(2),
+            Hz25_over_8  = UINT8_C(3),
+            Hz25_over_4  = UINT8_C(4),
+            Hz25_over_2  = UINT8_C(5),
+            Hz25 = UINT8_C(6),
+            Hz50 = UINT8_C(7),
+            Hz100 = UINT8_C(8),
+            Hz200 = UINT8_C(9),
+            Hz400 = UINT8_C(10),
+            Hz800 = UINT8_C(11)
+        };
+
+        /** @brief Selected values for reading  */
+        enum struct DATA_SIZE : uint8_t
+        {
+            LSB_X = UINT8_C(0x00),
+            X = UINT8_C(0x01),
+            XYZ = UINT8_C(0x02),
+            XYZ_RHALL = UINT8_C(0x03)
+        };
+
+        /** @brief Read offset after data ready, 2.5ms resolution. Recommended setting: 0x00<<2 */
+        enum struct READ_OFFSET : uint8_t
+        {
+            ms0 = UINT8_C(0x00 << 2),
+            ms2_5 = UINT8_C(0x01 << 2),
+            ms5 = UINT8_C(0x02 << 2),
+            ms7_5 = UINT8_C(0x03 << 2),
+            ms10 = UINT8_C(0x04 << 2),
+            ms12_5 = UINT8_C(0x05 << 2),
+            ms15 = UINT8_C(0x06 << 2),
+            ms17_5 = UINT8_C(0x07 << 2),
+            ms20 = UINT8_C(0x08 << 2),
+            ms22_5 = UINT8_C(0x09 << 2),
+            ms25 = UINT8_C(0x0A << 2),
+            ms27_5 = UINT8_C(0x0B << 2),
+            ms30 = UINT8_C(0x0C << 2),
+            ms32_5 = UINT8_C(0x0D << 2),
+            ms35 = UINT8_C(0x0E << 2),
+            ms37_5 = UINT8_C(0x0F << 2),
+        };
+
+        /** @brief List of allowed magnetometer initialization presets. Some odrs may not be allowed */
+        namespace PRESETS
+        {
+            /** @brief Presets for X and Y axes */
+            enum struct XY : uint8_t{
+                LOW_POWER = UINT8_C(0x01),
+                REGULAR = UINT8_C(0x04),
+                ENHANCED_REGULAR = UINT8_C(0x07),
+                HIGH_ACCURACY = UINT8_C(0x17)
+            };
+
+            /** @brief presets for Z axis */
+            enum struct Z : uint8_t{
+                LOW_POWER = UINT8_C(0x02),
+                REGULAR = UINT8_C(0x0E),
+                ENHANCED_REGULAR = UINT8_C(0x1A),
+                HIGH_ACCURACY = UINT8_C(0x52)
+            };
+        }
     }
 
     namespace TIMESTAMPS{
@@ -344,7 +417,7 @@ namespace FineTuneBMX160
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setMagnPowerMode(MAGN::POWER_MODE power_mode);
+        [[nodiscard]] bool setMagnInterfacePowerMode(MAGN::POWER_MODE power_mode);
 
 
 
@@ -413,6 +486,22 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         [[nodiscard]] bool getGyroOdr(GYRO::ODR& odr);
+
+        /**
+         * @brief Sets data rate for the magnetometer interface. Note that only 25/32Hz until 800Hz are allowed. Oversampling is not implemented
+         * 
+         * @param odr Unsigned integer used to compute frequency
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr);
+
+        /**
+         * @brief Copies to odr the chosen sampling frequency for the magnetometer interface
+         * 
+         * @param odr 
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR& odr);
 
         [[nodiscard]] bool getErrorRegister(uint8_t& error_code);
         
