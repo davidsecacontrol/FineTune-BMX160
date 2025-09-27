@@ -356,6 +356,72 @@ bool BMX160::getGyroOdr(GYRO::ODR& odr){
     return true;
 }
 
+bool BMX160::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr){
+    // Check if correct odr -----------------------------
+    // See table 11 for allowed ODR w.r.t. preset -> using regular preset
+    if(odr > MAGN_INTERFACE::ODR::Hz100 || odr < MAGN_INTERFACE::ODR::Hz25_over_2){ // ODR codeoutside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
+    
+
+
+    // Check if error flag is set (occurs if ODR is not allowed) ----------------------------------
+    REGISTER regs[8] = {
+        REGISTER::CMD,          // Set magn interface to normal
+        REGISTER::MAG_IF_0,     // Start read mode <7>= 0b1 with minimum delay <3:0> = 0b0000
+        REGISTER::MAG_IF_3,     // Prepare magn interface for data mode
+        REGISTER::MAG_IF_2,     // -
+        REGISTER::MAG_IF_1,     // -
+        REGISTER::MAG_CONF,     // Set odr
+        REGISTER::MAG_IF_0,     // Set magn interface to data mode
+        REGISTER::CMD,          // Set magn interface power mode to desired one
+    };
+
+    uint8_t buffer[8] = {
+        static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL), 
+        UINT8_C(0x80),
+        UINT8_C(0x02),
+        UINT8_C(0x4C),
+        UINT8_C(0x42),
+        static_cast<uint8_t>(odr),
+        static_cast<uint8_t>(this->magnetometer_interface_data_size),
+        static_cast<uint8_t>(this->magnetometer_interface_power_mode)
+    };
+        // Write to IMU -------------------------------------------------------------------------------
+    if(!writeReg(regs,buffer,8)){
+        return false;
+    }
+    uint8_t byte_read = 0;
+    if(!readReg(REGISTER::ERR_REG,byte_read)){
+        return false;
+    }
+
+    byte_read = (byte_read & 0b00011110) >> 1; // Masking the error code
+    if(byte_read != 0){
+        this->state = ERROR_CODE::ERR_REG;
+        return false;
+    }
+
+    // All good -> update local state -------------------------------------------------------
+    this->magnetometer_interface_odr = odr;
+
+    return true;   
+}
+
+bool BMX160::getMagnInterfaceOdr(MAGN_INTERFACE::ODR& odr){
+    uint8_t byte;
+    if(!readReg(REGISTER::MAG_CONF,byte)){
+        return false;
+    }
+
+    byte = byte & 0b00001111; // Mask for only the odr bits
+    odr = static_cast<MAGN_INTERFACE::ODR>(byte); 
+
+    return true;
+}
+
+
 bool BMX160::getErrorRegister(uint8_t& error_code){
     if(!readReg(REGISTER::ERR_REG,error_code)){
         return false;
