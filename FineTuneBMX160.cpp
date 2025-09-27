@@ -461,7 +461,7 @@ bool BMX160::writeReg(REGISTER const * const regs, uint8_t *const buffer, size_t
         this->Wire.write(&buffer[i], 1);
         this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
         if(wait_per_write){
-            this->wait(1); // It is required to wait 0.4 ms before writes
+            this->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
         }
     }
     
