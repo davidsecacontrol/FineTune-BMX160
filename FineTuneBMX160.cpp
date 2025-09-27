@@ -61,6 +61,20 @@ bool BMX160::setAccelRange(ACCEL::RANGE range)
 
     this->accelerometer_range = range;
 
+    switch (range){
+        case ACCEL::RANGE::G2:
+            this->accelerometer_sensitivity = ACCEL::SENSITIVITY[0];
+            break;
+        case ACCEL::RANGE::G4:
+            this->accelerometer_sensitivity = ACCEL::SENSITIVITY[1];
+            break;
+        case ACCEL::RANGE::G8:
+            this->accelerometer_sensitivity = ACCEL::SENSITIVITY[2];
+            break;
+        case ACCEL::RANGE::G16:
+            this->accelerometer_sensitivity = ACCEL::SENSITIVITY[3];
+            break;
+    }
     // Recommended to perform a read to remove all stall data
     DataPacket buffer;
     if(!this->getAllData(buffer, buffer, buffer)){
@@ -77,6 +91,8 @@ bool BMX160::setGyroRange(GYRO::RANGE range)
         return false;
     }
     this->gyroscope_range = range;
+
+    this->gyroscope_sensitivity =  GYRO::SENSITIVITY[static_cast<size_t>(this->gyroscope_range)]; // ONly allowed as mask goes from 0 and up 1 by 1
 
     // Recommended to perform a read to remove all stall data
     DataPacket buffer;
@@ -136,9 +152,9 @@ bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
         return false;
     };
 
-    CopyBufferToDataPacket(accel, &buffer[14], ACCEL::SENSITIVITY[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
-    CopyBufferToDataPacket(gyro, &buffer[8], GYRO::SENSITIVITY[static_cast<size_t>(this->gyroscope_range)]);
-    CopyBufferToDataPacket(magn, &buffer[0], MAGN::SENSITIVITY[static_cast<size_t>(this->magnetorquer_range)]);
+    CopyBufferToDataPacket(accel, &buffer[14], this->accelerometer_sensitivity * G_TO_MS2);
+    CopyBufferToDataPacket(gyro, &buffer[8], this->gyroscope_sensitivity);
+    CopyBufferToDataPacket(magn, &buffer[0], this->magnetomter_sensitivity);
 
     uint32_t time =  (static_cast<uint32_t>(buffer[22]) << 16) | (static_cast<uint32_t>(buffer[21]) << 8) | buffer[20];
 

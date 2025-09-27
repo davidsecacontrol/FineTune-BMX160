@@ -512,7 +512,9 @@ namespace FineTuneBMX160
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
         GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
         MAGN::RANGE magnetorquer_range = MAGN::RANGE::uT0_3; ///< Current magnetometer range
-
+        float accelerometer_sensitivity = ACCEL::SENSITIVITY[0];
+        float gyroscope_sensitivity = GYRO::SENSITIVITY[0];
+        float magnetomter_sensitivity = MAGN::SENSITIVITY[0];
         // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
         // - burst write                    IMPLEMENTED (not supported)
         // - Write without a 0.4 ms wait    IMPLEMENETED
