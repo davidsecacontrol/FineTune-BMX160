@@ -208,6 +208,11 @@ bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
     CopyBufferToDataPacket(accel, &buffer[14], ACCEL::SENSITIVITY[static_cast<size_t>(this->accelerometer_range)] * G_TO_MS2);
     CopyBufferToDataPacket(gyro, &buffer[8], GYRO::SENSITIVITY[static_cast<size_t>(this->gyroscope_range)]);
     CopyBufferToDataPacket(magn, &buffer[0], MAGN::SENSITIVITY[static_cast<size_t>(this->magnetorquer_range)]);
+    Serial.print("Buffer magn: [");
+    for(size_t i = 0; i < 8; i++){
+        Serial.print(buffer[i]);Serial.print(",");
+    }
+    Serial.println("]");
 
     uint32_t time =  (static_cast<uint32_t>(buffer[22]) << 16) | (static_cast<uint32_t>(buffer[21]) << 8) | buffer[20];
 
