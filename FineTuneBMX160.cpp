@@ -122,17 +122,21 @@ bool BMX160::setGyroPowerMode(GYRO::POWER_MODE power_mode){
 }
 
 bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
+    // All power mode changes require NORMAL mode first
+    if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL))){
+        return false;
+    }
+    this->wait(1); // 0.5 + 0.3 ms
+
     if(power_mode == MAGN_INTERFACE::POWER_MODE::SUSPEND){
-        constexpr size_t length = 5;
+        constexpr size_t length = 4;
         REGISTER regs[length] = {
-            REGISTER::CMD,          // Set magn interface to normal
             REGISTER::MAG_IF_0,     // Start read mode <7>= 0b1 with minimum delay <3:0> = 0b0000
             REGISTER::MAG_IF_3,     // Indirect write 0x00 (magn suspend mode) 
             REGISTER::MAG_IF_2,     // to indirect address 0x4B (magn power mode)
             REGISTER::CMD           // Set magn interface into suspend mode
         };
         uint8_t buffer[length] = {
-            static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL), 
             UINT8_C(0x80),
             static_cast<uint8_t>(MAGN::POWER_MODE::SUSPEND),
             static_cast<uint8_t>(MAGN::REGISTER::POWER_MODE),
@@ -142,11 +146,12 @@ bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
         if(!writeReg(regs,buffer,length)){
             return false;
         }
+        this->wait(1); // 0.5 + 0.3 ms
+
     }else{
-        constexpr size_t length = 14;
+        constexpr size_t length = 13;
         // Carry out initial setup
         REGISTER regs[length] = {
-            REGISTER::CMD,          // Set magn interface to normal
             REGISTER::MAG_IF_0,     // Start read mode <7>= 0b1 with minimum delay <3:0> = 0b0000
             REGISTER::MAG_IF_3,     // Indirect write 0x00 (magn suspend mode) 
             REGISTER::MAG_IF_2,     // to indirect address 0x4B (magn power mode)
@@ -163,7 +168,6 @@ bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
         };
 
         uint8_t buffer[length] = {
-            static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL), 
             UINT8_C(0x80),
             static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP),
             static_cast<uint8_t>(MAGN::REGISTER::POWER_MODE),
@@ -178,10 +182,11 @@ bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
             static_cast<uint8_t>(this->magnetometer_interface_data_size),
             static_cast<uint8_t>(power_mode)
         };
-
+        
         if(!writeReg(regs,buffer,length)){
             return false;
         }
+        this->wait(1); // 0.5 + 0.3 ms
     }
 
     this->magnetometer_interface_power_mode = power_mode;
