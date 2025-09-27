@@ -220,6 +220,30 @@ namespace FineTuneBMX160
      * 
      */
     namespace MAGN{
+        /** @brief Magnetometer addresses for indirect addressing */
+        enum struct REGISTER : uint8_t{
+            POWER_MODE = UINT8_C(0x4B),
+            REPXY = UINT8_C(0x51),
+            REPZ = UINT8_C(0x52)
+        };
+
+        namespace PRESETS{
+            enum struct REPXY : uint8_t{
+                LOW_POWER = UINT8_C(0x01),
+                REGULAR = UINT8_C(0x04),
+                ENHANCED_REGULAR = UINT8_C(0x07),
+                HIGH_ACCURACY = UINT8_C(0x17)
+            };
+
+            enum struct REPZ: uint8_t{
+                LOW_POWER = UINT8_C(0x02),
+                REGULAR = UINT8_C(0x0E),
+                ENHANCED_REGULAR = UINT8_C(0x1A),
+                HIGH_ACCURACY = UINT8_C(0x52)
+            };
+        }
+
+
 
         /** @brief Allowed magnetometer range*/
         enum struct RANGE : int{
@@ -229,9 +253,9 @@ namespace FineTuneBMX160
         /** @brief Allowed magnetometer power modes*/
         enum struct POWER_MODE : int
         {
-            FORCE = 0,
-            SLEEP = 1,
-            SUSPEND = 2
+            FORCE = 0x02, // Actually not specified in datasheet, shouldn't be employed
+            SLEEP = 0x01,
+            SUSPEND = 0x00
         };
 
         /** @brief Magnetometer sensitivity presets*/
@@ -279,7 +303,7 @@ namespace FineTuneBMX160
         };
 
         /** @brief Read offset after data ready, 2.5ms resolution. Recommended setting: 0x00<<2 */
-        enum struct READ_OFFSET : uint8_t
+        enum struct READ_OFFSET : uint8_t // Unused, minimum offset selected (0x00)
         {
             ms0 = UINT8_C(0x00 << 2),
             ms2_5 = UINT8_C(0x01 << 2),
@@ -411,13 +435,13 @@ namespace FineTuneBMX160
         [[nodiscard]] bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
 
         /**
-         * @brief Set the magnetometer power mode
+         * @brief Set the magnetometer power mode. This must be run after soft reset for the magn to work properly
          * 
          * 
          * @param power_mode 
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setMagnInterfacePowerMode(MAGN::POWER_MODE power_mode);
+        [[nodiscard]] bool setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode);
 
 
 
@@ -525,7 +549,8 @@ namespace FineTuneBMX160
         MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
         ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100; 
         GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100;
-
+        MAGN_INTERFACE::ODR magnetometer_interface_odr = MAGN_INTERFACE::ODR::Hz100;
+        MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL;
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
          * 
@@ -540,6 +565,16 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
+
+        /**
+         * @brief Sends a burst of write commands through the I2C protocol
+         *
+         * @param reg Arrays of registers to write to
+         * @param buffer Arrays of 8-bit values to write to
+         * @param length Length of buffer and regs arrays
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool writeReg(REGISTER const * const reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Requests one byte through the I2C protocol
