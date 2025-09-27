@@ -323,25 +323,6 @@ namespace FineTuneBMX160
             ms37_5 = UINT8_C(0x0F << 2),
         };
 
-        /** @brief List of allowed magnetometer initialization presets. Some odrs may not be allowed */
-        namespace PRESETS
-        {
-            /** @brief Presets for X and Y axes */
-            enum struct XY : uint8_t{
-                LOW_POWER = UINT8_C(0x01),
-                REGULAR = UINT8_C(0x04),
-                ENHANCED_REGULAR = UINT8_C(0x07),
-                HIGH_ACCURACY = UINT8_C(0x17)
-            };
-
-            /** @brief presets for Z axis */
-            enum struct Z : uint8_t{
-                LOW_POWER = UINT8_C(0x02),
-                REGULAR = UINT8_C(0x0E),
-                ENHANCED_REGULAR = UINT8_C(0x1A),
-                HIGH_ACCURACY = UINT8_C(0x52)
-            };
-        }
     }
 
     namespace TIMESTAMPS{
