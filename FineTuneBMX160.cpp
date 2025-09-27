@@ -33,6 +33,15 @@ BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{ad
 
 bool BMX160::begin()
 {
+    uint8_t read_chip;
+    if(!this->getChipID(read_chip)){
+        return false;
+    }
+    if(read_chip != CHIP_ID){
+        this->state = ERROR_CODE::INCORRECT_CHIP_ID;
+        return false;
+    }
+
     if(!this->setAccelPowerMode(ACCEL::POWER_MODE::NORMAL)) // Turn on accel
     {
         return false;

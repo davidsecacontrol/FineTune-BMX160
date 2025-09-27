@@ -14,9 +14,10 @@
 #include <Wire.h>
 #include <SPI.h>
 #include <stdint.h>
+
 namespace FineTuneBMX160
 {
-
+    constexpr uint8_t CHIP_ID = UINT8_C(216); 
     /** @brief BMX160 register bank idenitifiers*/
     enum struct REGISTER : uint8_t
     {
@@ -126,7 +127,8 @@ namespace FineTuneBMX160
         INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7),
         NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(8),
         INVALID_ODR_SETTING = UINT8_C(9),
-        ERR_REG = UINT8_C(10)
+        ERR_REG = UINT8_C(10),
+        INCORRECT_CHIP_ID = UINT8_C(11)
     };
 
     namespace ACCEL{
