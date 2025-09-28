@@ -260,7 +260,7 @@ bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 
     CopyBufferToDataPacket(accel, &buffer[14], this->accelerometer_sensitivity * G_TO_MS2);
     CopyBufferToDataPacket(gyro, &buffer[8], this->gyroscope_sensitivity);
-    CopyBufferToDataPacket(magn, &buffer[0], this->magnetomter_sensitivity);
+    CopyBufferToDataPacket(magn, &buffer[0], this->magnetometer_sensitivity);
 
     uint32_t time =  (static_cast<uint32_t>(buffer[22]) << 16) | (static_cast<uint32_t>(buffer[21]) << 8) | buffer[20];
 
