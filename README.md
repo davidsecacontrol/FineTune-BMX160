@@ -7,14 +7,16 @@ Currently under active development.
 For a basic usage of the library, check the example [GetAllData.ino](examples/GetAllData.ino)
 
 ## Features
-- Read time stamped **accelerometer**, **gyroscope** and **temperature** data
-- Configure **measurement ranges**
-- Configure **power modes**
-- **Error handling** by all functions returning success/failure
-- Magnetometer and advanced features (undersampling, digital filter FIFO, etc.) coming soon
+- Read time stamped **accelerometer**, **gyroscope**, **magnetometer** and **temperature** data
+- Configure all **measurement ranges**
+- Configure all **power modes**
+- Configure all **ODRs**. Notice certain power modes don't allow all ODRs, check datasheet.
+- **Error handling** by all functions returning success/failure + IMU state variable 
+- Indirect addressing of the inner [BMM150 magnetometer sensor](https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmm150-ds001.pdf). Notice the interface must be manually switched from Setup / Data mode if this feature is directly used. 
+- Advanced features (undersampling, digital filter FIFO, etc.) coming soon
 
   ## Roadmap
-  For an updated development plan, check [this ClickUp board](https://sharing.clickup.com/90151493180/b/h/5-90158959475-2/683fd04fea24ccc)
+  For an updated development plan, check [this ClickUp board](https://sharing.clickup.com/90151493180/b/h/5-90158959475-2/683fd04fea24ccc). Current state and better tracking comming soon.
 
 
 
