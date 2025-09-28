@@ -42,11 +42,11 @@ bool BMX160::begin()
     {
         return false;
     }
-
-    /*
-    state = writeReg(REGISTER::CMD, UINT8_C(0x18)); // Turn on magn
-    this->wait(10);
-    */
+    
+    if(!this->setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE::NORMAL)){
+        return false;
+    }
+    
     this->state = ERROR_CODE::ALL_OK;
     
     return true;
@@ -136,6 +136,112 @@ bool BMX160::setGyroPowerMode(GYRO::POWER_MODE power_mode){
 
     return true;
 }
+
+bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
+    // All power mode changes require NORMAL mode first
+    if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL))){
+        return false;
+    }
+    this->wait(1); // 0.5 + 0.3 ms
+
+    if(power_mode == MAGN_INTERFACE::POWER_MODE::SUSPEND){
+        if(!this->writeReg(REGISTER::MAG_IF_0,0x80)){ // Switch interface to setup mode
+            return false;
+        }
+
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::POWER_MODE,static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP))){
+            return false;
+        }
+        if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::SUSPEND))){
+            return false;
+        }
+        this->wait(1); // 0.5 + 0.3 ms
+
+    }else{
+        
+        if(!this->writeReg(REGISTER::MAG_IF_0,0x80)){  // Switch interface to setup mode
+            return false;
+        }
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::POWER_MODE,static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP))){
+            return false;
+        }
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::REPXY,static_cast<uint8_t>(MAGN::PRESETS::REPXY::REGULAR))){
+            return false;
+        }
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::REPZ,static_cast<uint8_t>(MAGN::PRESETS::REPZ::REGULAR))){
+            return false;
+        }
+        // Prepare interface for data mode
+        if(!this->MagnIndirectWrite(static_cast<MAGN::REGISTER>(0x4C),0x02)){
+            return false;
+        }
+        if(!this->writeReg(REGISTER::MAG_IF_1,0x42)){
+            return false;
+        }
+        // Set odr and return to power mode
+        if(!this->writeReg(REGISTER::MAG_CONF,static_cast<uint8_t>(this->magnetometer_interface_odr))){
+            return false;
+        }
+        if(!this->writeReg(REGISTER::MAG_IF_0,0x03)){ // Read 6 values
+            return false;
+        }
+        if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(power_mode))){
+            return false;
+        }
+        this->wait(1);
+    }
+
+    this->magnetometer_interface_power_mode = power_mode;
+
+    return true;
+}
+
+
+
+bool BMX160::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data){
+    if(!this->writeReg(REGISTER::MAG_IF_3,data)){
+        return false;
+    }
+    if(!this->writeReg(REGISTER::MAG_IF_2,static_cast<uint8_t>(reg))){
+        return false;
+    }
+    if(!this->waitForMagn()){
+        return false;
+    }
+
+    return true;
+}
+
+
+bool BMX160::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer){
+    if(!this->writeReg(REGISTER::MAG_IF_1,static_cast<uint8_t>(reg))){
+        return false;
+    }
+    if(!this->waitForMagn()){
+        return false;
+    }
+    if(!this->readReg(REGISTER::DATA_0,buffer)){
+        return false;
+    }
+
+    return true;
+}
+
+bool BMX160::waitForMagn() {
+    bool waiting = true;
+    uint8_t read_data;
+
+    do{
+
+        if(!this->readReg(REGISTER::STATUS,read_data)){
+            return false;
+        }
+
+        waiting = (read_data & 0b00000010) != 0; // Wait until write operation is done
+
+    }while(waiting);
+    return true;
+}   
 
 
 bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
@@ -303,6 +409,72 @@ bool BMX160::getGyroOdr(GYRO::ODR& odr){
     return true;
 }
 
+bool BMX160::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr){
+    // Check if correct odr -----------------------------
+    // See table 11 for allowed ODR w.r.t. preset -> using regular preset
+    if(odr > MAGN_INTERFACE::ODR::Hz100 || odr < MAGN_INTERFACE::ODR::Hz25_over_2){ // ODR codeoutside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
+    
+
+
+    // Check if error flag is set (occurs if ODR is not allowed) ----------------------------------
+    REGISTER regs[8] = {
+        REGISTER::CMD,          // Set magn interface to normal
+        REGISTER::MAG_IF_0,     // Start read mode <7>= 0b1 with minimum delay <3:0> = 0b0000
+        REGISTER::MAG_IF_3,     // Prepare magn interface for data mode
+        REGISTER::MAG_IF_2,     // -
+        REGISTER::MAG_IF_1,     // -
+        REGISTER::MAG_CONF,     // Set odr
+        REGISTER::MAG_IF_0,     // Set magn interface to data mode
+        REGISTER::CMD,          // Set magn interface power mode to desired one
+    };
+
+    uint8_t buffer[8] = {
+        static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL), 
+        UINT8_C(0x80),
+        UINT8_C(0x02),
+        UINT8_C(0x4C),
+        UINT8_C(0x42),
+        static_cast<uint8_t>(odr),
+        static_cast<uint8_t>(this->magnetometer_interface_data_size),
+        static_cast<uint8_t>(this->magnetometer_interface_power_mode)
+    };
+        // Write to IMU -------------------------------------------------------------------------------
+    if(!writeReg(regs,buffer,8)){
+        return false;
+    }
+    uint8_t byte_read = 0;
+    if(!readReg(REGISTER::ERR_REG,byte_read)){
+        return false;
+    }
+
+    byte_read = (byte_read & 0b00011110) >> 1; // Masking the error code
+    if(byte_read != 0){
+        this->state = ERROR_CODE::ERR_REG;
+        return false;
+    }
+
+    // All good -> update local state -------------------------------------------------------
+    this->magnetometer_interface_odr = odr;
+
+    return true;   
+}
+
+bool BMX160::getMagnInterfaceOdr(MAGN_INTERFACE::ODR& odr){
+    uint8_t byte;
+    if(!readReg(REGISTER::MAG_CONF,byte)){
+        return false;
+    }
+
+    byte = byte & 0b00001111; // Mask for only the odr bits
+    odr = static_cast<MAGN_INTERFACE::ODR>(byte); 
+
+    return true;
+}
+
+
 bool BMX160::getErrorRegister(uint8_t& error_code){
     if(!readReg(REGISTER::ERR_REG,error_code)){
         return false;
@@ -327,6 +499,30 @@ bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
     
     return this->state == ERROR_CODE::ALL_OK;
 }
+
+bool BMX160::writeReg(REGISTER const * const regs, uint8_t *const buffer, size_t length){
+    // Note that the begin/end transmission bufefr size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
+    
+    bool wait_per_write = 
+        this->accelerometer_power_mode          != ACCEL::POWER_MODE::NORMAL &&
+        this->gyroscope_power_mode              != GYRO::POWER_MODE::NORMAL  &&
+        this->magnetometer_interface_power_mode != MAGN_INTERFACE::POWER_MODE::NORMAL;
+
+    for(size_t i = 0; i < length; i++){ 
+        this->Wire.beginTransmission(this->address);
+        this->Wire.write(static_cast<uint8_t>(regs[i]));
+        this->Wire.write(&buffer[i], 1);
+        this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+        if(wait_per_write){
+            this->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
+        }
+    }
+    
+
+    
+    return this->state == ERROR_CODE::ALL_OK;
+}
+
 
 bool BMX160::readReg(const REGISTER reg, uint8_t &buffer)
 {
