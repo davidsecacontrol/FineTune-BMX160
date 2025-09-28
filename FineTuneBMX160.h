@@ -548,7 +548,7 @@ namespace FineTuneBMX160
         [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
 
         /**
-         * @brief Sends a burst of write commands through the I2C protocol
+         * @brief Sends a burst of write commands through the I2C protocol.
          *
          * @param reg Arrays of registers to write to
          * @param buffer Arrays of 8-bit values to write to
@@ -575,6 +575,33 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+
+
+        /**
+         * @brief Continuously checks register 0x1B (STATUS) for bit <1> mag_man_op = 0.
+         * 
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool waitForMagn();
+
+        /**
+         * @brief Uses indirect writing to interface with the magnetometer sensor BMM150 directly. CAREFUL! MAGNETOMETER MUST BE SET INTO MANUAL MODE FIRST!
+         * 
+         * @param reg BMM150 register to write to
+         * @param data 8-bit value to write
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data);
+
+        /**
+         * @brief Uses indirect reading to interface with the magnetometer sensor BMM150 directly. CAREFUL! MAGNETOMETER MUST BE SET INTO MANUAL MODE FIRST!
+         * 
+         * @param reg BMM150 register to read from
+         * @param buffer 8-bit buffer for storing read value
+         * @return bool success/fail status
+         */
+        [[nodiscard]] bool MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer);
+
     };
 
 }

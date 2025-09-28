@@ -193,7 +193,53 @@ bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
 
     return true;
 }
-    
+
+
+
+bool BMX160::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data){
+    if(!this->writeReg(REGISTER::MAG_IF_3,data)){
+        return false;
+    }
+    if(!this->writeReg(REGISTER::MAG_IF_2,static_cast<uint8_t>(reg))){
+        return false;
+    }
+    if(!this->waitForMagn()){
+        return false;
+    }
+
+    return true;
+}
+
+
+bool BMX160::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer){
+    if(!this->writeReg(REGISTER::MAG_IF_1,static_cast<uint8_t>(reg))){
+        return false;
+    }
+    if(!this->waitForMagn()){
+        return false;
+    }
+    if(!this->readReg(REGISTER::DATA_0,buffer)){
+        return false;
+    }
+
+    return true;
+}
+
+bool BMX160::waitForMagn() {
+    bool waiting = true;
+    uint8_t read_data;
+
+    do{
+
+        if(!this->readReg(REGISTER::STATUS,read_data)){
+            return false;
+        }
+
+        waiting = (read_data & 0b00000010) != 0; // Wait until write operation is done
+
+    }while(waiting);
+    return true;
+}   
 
 
 bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
