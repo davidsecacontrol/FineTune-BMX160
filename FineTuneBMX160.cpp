@@ -129,64 +129,50 @@ bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode){
     this->wait(1); // 0.5 + 0.3 ms
 
     if(power_mode == MAGN_INTERFACE::POWER_MODE::SUSPEND){
-        constexpr size_t length = 4;
-        REGISTER regs[length] = {
-            REGISTER::MAG_IF_0,     // Start read mode <7>= 0b1 with minimum delay <3:0> = 0b0000
-            REGISTER::MAG_IF_3,     // Indirect write 0x00 (magn suspend mode) 
-            REGISTER::MAG_IF_2,     // to indirect address 0x4B (magn power mode)
-            REGISTER::CMD           // Set magn interface into suspend mode
-        };
-        uint8_t buffer[length] = {
-            UINT8_C(0x80),
-            static_cast<uint8_t>(MAGN::POWER_MODE::SUSPEND),
-            static_cast<uint8_t>(MAGN::REGISTER::POWER_MODE),
-            static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::SUSPEND)
-        };
+        if(!this->writeReg(REGISTER::MAG_IF_0,0x80)){ // Switch interface to setup mode
+            return false;
+        }
 
-        if(!writeReg(regs,buffer,length)){
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::POWER_MODE,static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP))){
+            return false;
+        }
+        if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::SUSPEND))){
             return false;
         }
         this->wait(1); // 0.5 + 0.3 ms
 
     }else{
-        constexpr size_t length = 13;
-        // Carry out initial setup
-        REGISTER regs[length] = {
-            REGISTER::MAG_IF_0,     // Start read mode <7>= 0b1 with minimum delay <3:0> = 0b0000
-            REGISTER::MAG_IF_3,     // Indirect write 0x00 (magn suspend mode) 
-            REGISTER::MAG_IF_2,     // to indirect address 0x4B (magn power mode)
-            REGISTER::MAG_IF_3,     // Set REPXY regular preset
-            REGISTER::MAG_IF_2,     // -
-            REGISTER::MAG_IF_3,     // Set REPZ to regular preset
-            REGISTER::MAG_IF_2,     // -
-            REGISTER::MAG_IF_3,     // Prepare magn interface for data mode
-            REGISTER::MAG_IF_2,     // -
-            REGISTER::MAG_IF_1,     // -
-            REGISTER::MAG_CONF,     // Set odr
-            REGISTER::MAG_IF_0,     // Set magn interface to data mode
-            REGISTER::CMD,          // Set magn interface power mode to desired one
-        };
-
-        uint8_t buffer[length] = {
-            UINT8_C(0x80),
-            static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP),
-            static_cast<uint8_t>(MAGN::REGISTER::POWER_MODE),
-            static_cast<uint8_t>(MAGN::PRESETS::REPXY::REGULAR),
-            static_cast<uint8_t>(MAGN::REGISTER::REPXY),
-            static_cast<uint8_t>(MAGN::PRESETS::REPZ::REGULAR),
-            static_cast<uint8_t>(MAGN::REGISTER::REPZ),
-            UINT8_C(0x02),
-            UINT8_C(0x4C),
-            UINT8_C(0x42),
-            static_cast<uint8_t>(this->magnetometer_interface_odr),
-            static_cast<uint8_t>(this->magnetometer_interface_data_size),
-            static_cast<uint8_t>(power_mode)
-        };
         
-        if(!writeReg(regs,buffer,length)){
+        if(!this->writeReg(REGISTER::MAG_IF_0,0x80)){  // Switch interface to setup mode
             return false;
         }
-        this->wait(1); // 0.5 + 0.3 ms
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::POWER_MODE,static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP))){
+            return false;
+        }
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::REPXY,static_cast<uint8_t>(MAGN::PRESETS::REPXY::REGULAR))){
+            return false;
+        }
+        if(!this->MagnIndirectWrite(MAGN::REGISTER::REPZ,static_cast<uint8_t>(MAGN::PRESETS::REPZ::REGULAR))){
+            return false;
+        }
+        // Prepare interface for data mode
+        if(!this->MagnIndirectWrite(static_cast<MAGN::REGISTER>(0x4C),0x02)){
+            return false;
+        }
+        if(!this->writeReg(REGISTER::MAG_IF_1,0x42)){
+            return false;
+        }
+        // Set odr and return to power mode
+        if(!this->writeReg(REGISTER::MAG_CONF,static_cast<uint8_t>(this->magnetometer_interface_odr))){
+            return false;
+        }
+        if(!this->writeReg(REGISTER::MAG_IF_0,0x03)){ // Read 6 values
+            return false;
+        }
+        if(!this->writeReg(REGISTER::CMD,static_cast<uint8_t>(power_mode))){
+            return false;
+        }
+        this->wait(1);
     }
 
     this->magnetometer_interface_power_mode = power_mode;
