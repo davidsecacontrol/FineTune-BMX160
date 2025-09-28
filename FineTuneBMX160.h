@@ -114,7 +114,7 @@ namespace FineTuneBMX160
     };
 
     /** @brief Wire I2C error identifiers*/
-    enum struct ERROR_CODE : uint8_t  // DO NOT CHANGE ORDER OF I2C ELEMENTS
+    enum struct ERROR_CODE : uint8_t // DO NOT CHANGE ORDER OF I2C ELEMENTS
     {
         ALL_OK = UINT8_C(0),
         I2C_TOO_LONG_FOR_BUFFER = UINT8_C(1),
@@ -129,17 +129,18 @@ namespace FineTuneBMX160
         ERR_REG = UINT8_C(10)
     };
 
-    namespace ACCEL{
+    namespace ACCEL
+    {
 
         /** @brief Allowed accelerometer ranges. Values represent mask */
         enum struct RANGE : uint8_t
         {
-            G2  = 0b00000011,
-            G4  = 0b00000101,
-            G8  = 0b00001000,
+            G2 = 0b00000011,
+            G4 = 0b00000101,
+            G8 = 0b00001000,
             G16 = 0b00001100
         };
-        
+
         /** @brief Allowed accelerometer power modes. Values represent the mask */
         enum struct POWER_MODE : uint8_t
         {
@@ -148,14 +149,13 @@ namespace FineTuneBMX160
             SUSPEND = 0b00010000
         };
 
-
-        enum struct ODR : uint8_t 
+        enum struct ODR : uint8_t
         {
             Hz25_over_32 = UINT8_C(1),
             Hz25_over_16 = UINT8_C(2),
-            Hz25_over_8  = UINT8_C(3),
-            Hz25_over_4  = UINT8_C(4),
-            Hz25_over_2  = UINT8_C(5),
+            Hz25_over_8 = UINT8_C(3),
+            Hz25_over_4 = UINT8_C(4),
+            Hz25_over_2 = UINT8_C(5),
             Hz25 = UINT8_C(6),
             Hz50 = UINT8_C(7),
             Hz100 = UINT8_C(8),
@@ -165,16 +165,16 @@ namespace FineTuneBMX160
             Hz1600 = UINT8_C(12)
         };
 
-    /** @brief Accelerometer sensitivity presets*/
-    constexpr float SENSITIVITY[] = {
-        1.0f / 16384,
-        1.0f / 8192,
-        1.0f / 4096,
-        1.0f / 2048
-    };
+        /** @brief Accelerometer sensitivity presets*/
+        constexpr float SENSITIVITY[] = {
+            1.0f / 16384,
+            1.0f / 8192,
+            1.0f / 4096,
+            1.0f / 2048};
     }
 
-    namespace GYRO{
+    namespace GYRO
+    {
 
         /** @brief Allowed gyroscope ranges. Values represent mask */
         enum struct RANGE : uint8_t
@@ -194,7 +194,7 @@ namespace FineTuneBMX160
             SUSPEND = 0b00010100
         };
 
-        enum struct ODR : uint8_t 
+        enum struct ODR : uint8_t
         {
             Hz25 = UINT8_C(6),
             Hz50 = UINT8_C(7),
@@ -208,34 +208,38 @@ namespace FineTuneBMX160
 
         /** @brief Gyroscope sensisitivy presets*/
         constexpr float SENSITIVITY[] = {
-        1.0f / 16.4f,
-        1.0f / 32.8f,
-        1.0f / 65.6f,
-        1.0f / 131.2f
-    };
+            1.0f / 16.4f,
+            1.0f / 32.8f,
+            1.0f / 65.6f,
+            1.0f / 131.2f};
     }
 
     /**
      * @brief Embedded magnetometer chip inside the BMX160. Can be used via indirect addressing
-     * 
+     *
      */
-    namespace MAGN{
+    namespace MAGN
+    {
         /** @brief Magnetometer addresses for indirect addressing */
-        enum struct REGISTER : uint8_t{
+        enum struct REGISTER : uint8_t
+        {
             POWER_MODE = UINT8_C(0x4B),
             REPXY = UINT8_C(0x51),
             REPZ = UINT8_C(0x52)
         };
 
-        namespace PRESETS{
-            enum struct REPXY : uint8_t{
+        namespace PRESETS
+        {
+            enum struct REPXY : uint8_t
+            {
                 LOW_POWER = UINT8_C(0x01),
                 REGULAR = UINT8_C(0x04),
                 ENHANCED_REGULAR = UINT8_C(0x07),
                 HIGH_ACCURACY = UINT8_C(0x17)
             };
 
-            enum struct REPZ: uint8_t{
+            enum struct REPZ : uint8_t
+            {
                 LOW_POWER = UINT8_C(0x02),
                 REGULAR = UINT8_C(0x0E),
                 ENHANCED_REGULAR = UINT8_C(0x1A),
@@ -243,10 +247,9 @@ namespace FineTuneBMX160
             };
         }
 
-
-
         /** @brief Allowed magnetometer range*/
-        enum struct RANGE : int{
+        enum struct RANGE : int
+        {
             uT0_3 = 0
         };
 
@@ -260,15 +263,15 @@ namespace FineTuneBMX160
 
         /** @brief Magnetometer sensitivity presets*/
         constexpr float SENSITIVITY[] = {
-            0.3f
-        };
+            0.3f};
     }
 
     /**
      * @brief Interface used for synchronising and using the embedded magnetometer same way as the other sensors.
-     * 
+     *
      */
-    namespace MAGN_INTERFACE{
+    namespace MAGN_INTERFACE
+    {
         /** @brief Allowed magnetometer interface power modes*/
         enum struct POWER_MODE : int8_t
         {
@@ -282,9 +285,9 @@ namespace FineTuneBMX160
         {
             Hz25_over_32 = UINT8_C(1),
             Hz25_over_16 = UINT8_C(2),
-            Hz25_over_8  = UINT8_C(3),
-            Hz25_over_4  = UINT8_C(4),
-            Hz25_over_2  = UINT8_C(5),
+            Hz25_over_8 = UINT8_C(3),
+            Hz25_over_4 = UINT8_C(4),
+            Hz25_over_2 = UINT8_C(5),
             Hz25 = UINT8_C(6),
             Hz50 = UINT8_C(7),
             Hz100 = UINT8_C(8),
@@ -325,41 +328,39 @@ namespace FineTuneBMX160
 
     }
 
-    namespace TIMESTAMPS{
+    namespace TIMESTAMPS
+    {
         /** @brief Timestamps sensitivity presets in seconds */
         constexpr float SENSITIVITY[] = {
-            0.000039f
-        };
+            0.000039f};
     }
 
-    namespace TEMP_SENSOR{
+    namespace TEMP_SENSOR
+    {
         /** @brief Temperature sensor sensitivity presets in ºC*/
         constexpr float SENSITIVITY[] = {
-            1.0f/512.0f
-        };
+            1.0f / 512.0f};
     }
-
-
 
     /** @brief Single sensor measurement */
     typedef struct
     {
-        float x; ///< x-axis
-        float y; ///< y-axis
-        float z; ///< z-axis
+        float x;             ///< x-axis
+        float y;             ///< y-axis
+        float z;             ///< z-axis
         uint32_t sensortime; ///< Local sensor time, 24 bits with wrapping, 39us/LSB
     } DataPacket;
 
     /**
      * @brief Sensor API. All communication with sensor should happen throuh this library
-     * 
+     *
      */
     class BMX160
     {
     public:
         /**
          * @brief BMX60 error status. If different from ALL_OK handle error and clear this variable
-         * 
+         *
          */
         ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
 
@@ -398,33 +399,30 @@ namespace FineTuneBMX160
          */
         [[nodiscard]] bool setGyroRange(GYRO::RANGE range);
 
-
         /**
-         * @brief Set the accelerometer power mode. 
-         * 
-         * @param power_mode 
+         * @brief Set the accelerometer power mode.
+         *
+         * @param power_mode
          * @return bool success/fail status
          */
         [[nodiscard]] bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
 
         /**
-         * @brief Set the gyroscope power mode. 
-         * 
-         * @param power_mode 
+         * @brief Set the gyroscope power mode.
+         *
+         * @param power_mode
          * @return bool success/fail status
          */
         [[nodiscard]] bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
 
         /**
          * @brief Set the magnetometer power mode. This must be run after soft reset for the magn to work properly
-         * 
-         * 
-         * @param power_mode 
+         *
+         *
+         * @param power_mode
          * @return bool success/fail status
          */
         [[nodiscard]] bool setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode);
-
-
 
         /**
          * @brief Reads latest sensor data
@@ -438,12 +436,11 @@ namespace FineTuneBMX160
 
         /**
          * @brief Reads the sensor temperature data. Updated never (all sensors suspended) every 10ms +- (gyro enabled) or 1.28s lining with bit 15 of sensortime (gyro suspended / fast mode)
-         * 
+         *
          * @param temp Read temperature value
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getTemp(float& temp);
-        
+        [[nodiscard]] bool getTemp(float &temp);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
@@ -453,16 +450,16 @@ namespace FineTuneBMX160
         [[nodiscard]] bool isConnected();
 
         /**
-         * @brief Retrieves the chip's id. Correct when == 216 
-         * 
+         * @brief Retrieves the chip's id. Correct when == 216
+         *
          * @param chip_id Variable to store read value
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getChipID(uint8_t& chip_id);
-    
+        [[nodiscard]] bool getChipID(uint8_t &chip_id);
+
         /**
          * @brief Sets data rate for the accelerometer. Note that in normal mode only 32/2Hz until 1600Hz are allowed. Oversampling and low_power mode not implemented
-         * 
+         *
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
@@ -470,15 +467,15 @@ namespace FineTuneBMX160
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the accelerometer
-         * 
-         * @param odr 
+         *
+         * @param odr
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getAccelOdr(ACCEL::ODR& odr);
+        [[nodiscard]] bool getAccelOdr(ACCEL::ODR &odr);
 
         /**
          * @brief Sets data rate for the gyroscope. Note that only 25Hz until 3200Hz are allowed. Oversampling is not implemented
-         * 
+         *
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
@@ -486,15 +483,15 @@ namespace FineTuneBMX160
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the gyroscope
-         * 
-         * @param odr 
+         *
+         * @param odr
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getGyroOdr(GYRO::ODR& odr);
+        [[nodiscard]] bool getGyroOdr(GYRO::ODR &odr);
 
         /**
          * @brief Sets data rate for the magnetometer interface. Note that only 25/32Hz until 800Hz are allowed. Oversampling is not implemented
-         * 
+         *
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
@@ -502,14 +499,14 @@ namespace FineTuneBMX160
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the magnetometer interface
-         * 
-         * @param odr 
+         *
+         * @param odr
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR& odr);
+        [[nodiscard]] bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr);
 
-        [[nodiscard]] bool getErrorRegister(uint8_t& error_code);
-        
+        [[nodiscard]] bool getErrorRegister(uint8_t &error_code);
+
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
         const uint8_t address = UINT8_C(0x68); ///< Sensor address
@@ -530,13 +527,13 @@ namespace FineTuneBMX160
         GYRO::POWER_MODE gyroscope_power_mode = GYRO::POWER_MODE::SUSPEND;
         MAGN::POWER_MODE magnetometer_power_mode = MAGN::POWER_MODE::SUSPEND;
         MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
-        ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100; 
+        ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100;
         GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100;
         MAGN_INTERFACE::ODR magnetometer_interface_odr = MAGN_INTERFACE::ODR::Hz100;
         MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL;
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
-         * 
+         *
          */
         virtual void wait(unsigned long time);
 
@@ -557,7 +554,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer and regs arrays
          * @return bool success/fail status
          */
-        [[nodiscard]] bool writeReg(REGISTER const * const reg, uint8_t *const buffer, size_t length);
+        [[nodiscard]] bool writeReg(REGISTER const *const reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Requests one byte through the I2C protocol
@@ -578,17 +575,16 @@ namespace FineTuneBMX160
          */
         [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
-
         /**
          * @brief Continuously checks register 0x1B (STATUS) for bit <1> mag_man_op = 0.
-         * 
+         *
          * @return bool success/fail status
          */
         [[nodiscard]] bool waitForMagn();
 
         /**
          * @brief Uses indirect writing to interface with the magnetometer sensor BMM150 directly. CAREFUL! MAGNETOMETER MUST BE SET INTO MANUAL MODE FIRST!
-         * 
+         *
          * @param reg BMM150 register to write to
          * @param data 8-bit value to write
          * @return bool success/fail status
@@ -597,13 +593,12 @@ namespace FineTuneBMX160
 
         /**
          * @brief Uses indirect reading to interface with the magnetometer sensor BMM150 directly. CAREFUL! MAGNETOMETER MUST BE SET INTO MANUAL MODE FIRST!
-         * 
+         *
          * @param reg BMM150 register to read from
          * @param buffer 8-bit buffer for storing read value
          * @return bool success/fail status
          */
         [[nodiscard]] bool MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer);
-
     };
 
 }
