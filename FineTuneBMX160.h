@@ -256,7 +256,8 @@ namespace FineTuneBMX160
         /** @brief Allowed magnetometer range*/
         enum struct RANGE : int
         {
-            uT0_3 = 0
+            XY_uT1300 = 0,
+            Z_uT2500 = 0
         };
 
         /** @brief Allowed magnetometer power modes*/
@@ -531,7 +532,7 @@ namespace FineTuneBMX160
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
         GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
-        MAGN::RANGE magnetorquer_range = MAGN::RANGE::uT0_3; ///< Current magnetometer range
+
         float accelerometer_sensitivity = ACCEL::SENSITIVITY[0];
         float gyroscope_sensitivity = GYRO::SENSITIVITY[0];
         float magnetometer_sensitivity = MAGN::SENSITIVITY[0];
