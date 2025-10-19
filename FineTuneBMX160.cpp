@@ -31,12 +31,16 @@ BMX160::BMX160(uint8_t address) : address{address} {};
 
 bool BMX160::begin()
 {
-    if (!this->setAccelPowerMode(ACCEL::POWER_MODE::NORMAL)) // Turn on accel
+    if(!this->softReset()){ // Reset IMU
+        return false;
+    }
+    
+    if (!this->setAccelPowerMode(ACCEL::POWER_MODE::NORMAL)) 
     {
         return false;
     }
 
-    if (!this->setGyroPowerMode(GYRO::POWER_MODE::NORMAL)) // Turn on gyro
+    if (!this->setGyroPowerMode(GYRO::POWER_MODE::NORMAL)) 
     {
         return false;
     }
@@ -532,6 +536,14 @@ bool BMX160::getErrorRegister(uint8_t &error_code)
     }
     return true;
 }
+
+bool BMX160::softReset(){
+    if(!writeReg(REGISTER::CMD,UINT8_C(0xB6))){
+        return false;
+    }
+    return true;
+}
+
 
 bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
 {

@@ -512,7 +512,14 @@ namespace FineTuneBMX160
         bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr);
 
         bool getErrorRegister(uint8_t &error_code);
-
+        
+        /**
+         * @brief Trigers a reboot of the whole BMX160
+         * 
+         * @return bool success/fail status
+         */
+        bool softReset();
+        
     protected:
         const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
 
