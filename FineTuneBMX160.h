@@ -431,12 +431,28 @@ namespace FineTuneBMX160
         bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
 
         /**
+         * @brief Copies to power_mode the current power mode of the accelerometer
+         *
+         * @param power_mode
+         * @return bool success/fail status
+         */
+        bool getAccelPowerMode(ACCEL::POWER_MODE& power_mode);
+
+        /**
          * @brief Set the gyroscope power mode.
          *
          * @param power_mode
          * @return bool success/fail status
          */
         bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
+
+        /**
+         * @brief Copies to power_mode the current power mode of the gyroscope
+         *
+         * @param power_mode
+         * @return bool success/fail status
+         */
+        bool getGyroPowerMode(GYRO::POWER_MODE& power_mode);
 
         /**
          * @brief Set the magnetometer power mode. This must be run after soft reset for the magn to work properly
@@ -446,6 +462,14 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         bool setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode);
+
+            /**
+         * @brief Copies to power_mode the current power mode of the magnetometer interface
+         *
+         * @param power_mode
+         * @return bool success/fail status
+         */
+        bool getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode);
 
         /**
          * @brief Reads latest sensor data

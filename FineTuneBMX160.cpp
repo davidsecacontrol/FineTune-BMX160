@@ -160,6 +160,29 @@ bool BMX160::setAccelPowerMode(ACCEL::POWER_MODE power_mode)
     return true;
 }
 
+bool BMX160::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
+    uint8_t byte;
+    if(!this->readReg(REGISTER::PMU_STATUS,byte)){
+        return false;
+    }
+    
+    switch((byte & 0b00110000) >> 4){
+        case 0:
+            power_mode = ACCEL::POWER_MODE::SUSPEND;
+        break;
+        case 1:
+            power_mode = ACCEL::POWER_MODE::NORMAL;
+        break;
+        case 2:
+            power_mode = ACCEL::POWER_MODE::LOW_POWER;
+        break;
+
+        default:
+            return false;
+    }
+    return true;
+}
+
 bool BMX160::setGyroPowerMode(GYRO::POWER_MODE power_mode)
 {
     if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(power_mode)))
@@ -176,6 +199,53 @@ bool BMX160::setGyroPowerMode(GYRO::POWER_MODE power_mode)
         break;
     default:
         this->wait(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
+    }
+
+    return true;
+}
+
+bool BMX160::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
+    uint8_t byte;
+    if(!this->readReg(REGISTER::PMU_STATUS,byte)){
+        return false;
+    }
+    
+    switch((byte & 0b00001100) >> 2){
+        case 0:
+            power_mode = GYRO::POWER_MODE::SUSPEND;
+        break;
+        case 1:
+            power_mode = GYRO::POWER_MODE::NORMAL;
+        break;
+        case 3:
+            power_mode = GYRO::POWER_MODE::FAST_STARTUP;
+        break;
+
+        default:
+            return false;
+    }
+
+    return true;
+}
+
+bool BMX160::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
+    uint8_t byte;
+    if(!this->readReg(REGISTER::PMU_STATUS,byte)){
+        return false;
+    }
+    switch(byte & 0b00000011){
+        case 0:
+            power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
+        break;
+        case 1:
+            power_mode = MAGN_INTERFACE::POWER_MODE::NORMAL;
+        break;
+        case 2:
+            power_mode = MAGN_INTERFACE::POWER_MODE::LOW_POWER;
+        break;
+
+        default:
+            return false;
     }
 
     return true;
