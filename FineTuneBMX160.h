@@ -383,7 +383,7 @@ namespace FineTuneBMX160
          *
          * @return bool success/fail status
          */
-        [[nodiscard]] bool begin();
+        bool begin();
 
         /**
          * @brief Set specific accelerometer data range
@@ -391,7 +391,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelRange(ACCEL::RANGE range);
+        bool setAccelRange(ACCEL::RANGE range);
 
         /**
          * @brief Set specific gyroscope data range
@@ -399,7 +399,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroRange(GYRO::RANGE range);
+        bool setGyroRange(GYRO::RANGE range);
 
         /**
          * @brief Set the accelerometer power mode.
@@ -407,7 +407,7 @@ namespace FineTuneBMX160
          * @param power_mode
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
+        bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
 
         /**
          * @brief Set the gyroscope power mode.
@@ -415,7 +415,7 @@ namespace FineTuneBMX160
          * @param power_mode
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
+        bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
 
         /**
          * @brief Set the magnetometer power mode. This must be run after soft reset for the magn to work properly
@@ -424,7 +424,7 @@ namespace FineTuneBMX160
          * @param power_mode
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode);
+        bool setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode);
 
         /**
          * @brief Reads latest sensor data
@@ -434,7 +434,7 @@ namespace FineTuneBMX160
          * @param magn  Object to store magnetometer data
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
+        bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
         /**
          * @brief Reads the sensor temperature data. Updated never (all sensors suspended) every 10ms +- (gyro enabled) or 1.28s lining with bit 15 of sensortime (gyro suspended / fast mode)
@@ -442,14 +442,14 @@ namespace FineTuneBMX160
          * @param temp Read temperature value
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getTemp(float &temp);
+        bool getTemp(float &temp);
 
         /**
          * @brief Returns true if IMU acknowledges conenction
          *
          * @return bool success/fail status
          */
-        [[nodiscard]] bool isConnected();
+        bool isConnected();
 
         /**
          * @brief Retrieves the chip's id. Correct when == 216
@@ -457,7 +457,7 @@ namespace FineTuneBMX160
          * @param chip_id Variable to store read value
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getChipID(uint8_t &chip_id);
+        bool getChipID(uint8_t &chip_id);
 
         /**
          * @brief Sets data rate for the accelerometer. Note that in normal mode only 32/2Hz until 1600Hz are allowed. Oversampling and low_power mode not implemented
@@ -465,7 +465,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setAccelOdr(const ACCEL::ODR odr);
+        bool setAccelOdr(const ACCEL::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the accelerometer
@@ -473,7 +473,7 @@ namespace FineTuneBMX160
          * @param odr
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getAccelOdr(ACCEL::ODR &odr);
+        bool getAccelOdr(ACCEL::ODR &odr);
 
         /**
          * @brief Sets data rate for the gyroscope. Note that only 25Hz until 3200Hz are allowed. Oversampling is not implemented
@@ -481,7 +481,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setGyroOdr(const GYRO::ODR odr);
+        bool setGyroOdr(const GYRO::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the gyroscope
@@ -489,7 +489,7 @@ namespace FineTuneBMX160
          * @param odr
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getGyroOdr(GYRO::ODR &odr);
+        bool getGyroOdr(GYRO::ODR &odr);
 
         /**
          * @brief Sets data rate for the magnetometer interface. Note that only 25/32Hz until 800Hz are allowed. Oversampling is not implemented
@@ -497,7 +497,7 @@ namespace FineTuneBMX160
          * @param odr Unsigned integer used to compute frequency
          * @return bool success/fail status
          */
-        [[nodiscard]] bool setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr);
+        bool setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr);
 
         /**
          * @brief Copies to odr the chosen sampling frequency for the magnetometer interface
@@ -505,9 +505,9 @@ namespace FineTuneBMX160
          * @param odr
          * @return bool success/fail status
          */
-        [[nodiscard]] bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr);
+        bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr);
 
-        [[nodiscard]] bool getErrorRegister(uint8_t &error_code);
+        bool getErrorRegister(uint8_t &error_code);
 
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
@@ -546,7 +546,7 @@ namespace FineTuneBMX160
          * @param byte 8-bit value to write
          * @return bool success/fail status
          */
-        [[nodiscard]] bool writeReg(const REGISTER reg, const uint8_t byte);
+        bool writeReg(const REGISTER reg, const uint8_t byte);
 
         /**
          * @brief Sends a burst of write commands through the I2C protocol.
@@ -556,7 +556,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer and regs arrays
          * @return bool success/fail status
          */
-        [[nodiscard]] bool writeReg(REGISTER const *const reg, uint8_t *const buffer, size_t length);
+        bool writeReg(REGISTER const *const reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Requests one byte through the I2C protocol
@@ -565,7 +565,7 @@ namespace FineTuneBMX160
          * @param buffer 8-bit buffer for storing read value
          * @return bool success/fail status
          */
-        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t &buffer);
+        bool readReg(const REGISTER reg, uint8_t &buffer);
 
         /**
          * @brief Requests a variable number of bytes through the I2C protocol
@@ -575,14 +575,14 @@ namespace FineTuneBMX160
          * @param length Length of buffer buffer
          * @return bool success/fail status
          */
-        [[nodiscard]] bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+        bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Continuously checks register 0x1B (STATUS) for bit <1> mag_man_op = 0.
          *
          * @return bool success/fail status
          */
-        [[nodiscard]] bool waitForMagn();
+        bool waitForMagn();
 
         /**
          * @brief Uses indirect writing to interface with the magnetometer sensor BMM150 directly. CAREFUL! MAGNETOMETER MUST BE SET INTO MANUAL MODE FIRST!
@@ -591,7 +591,7 @@ namespace FineTuneBMX160
          * @param data 8-bit value to write
          * @return bool success/fail status
          */
-        [[nodiscard]] bool MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data);
+        bool MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data);
 
         /**
          * @brief Uses indirect reading to interface with the magnetometer sensor BMM150 directly. CAREFUL! MAGNETOMETER MUST BE SET INTO MANUAL MODE FIRST!
@@ -600,7 +600,7 @@ namespace FineTuneBMX160
          * @param buffer 8-bit buffer for storing read value
          * @return bool success/fail status
          */
-        [[nodiscard]] bool MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer);
+        bool MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer);
     };
 
 }
