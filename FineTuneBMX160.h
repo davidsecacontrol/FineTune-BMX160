@@ -129,6 +129,10 @@ namespace FineTuneBMX160
         ERR_REG = UINT8_C(10)
     };
 
+    constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000;
+    constexpr uint8_t I2C_ADDRESS = 0x68;
+    constexpr uint8_t CHIP_ID = 216;
+
     namespace ACCEL
     {
 
@@ -511,7 +515,7 @@ namespace FineTuneBMX160
 
     protected:
         arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
-        const uint8_t address = UINT8_C(0x68); ///< Sensor address
+        const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
         GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
