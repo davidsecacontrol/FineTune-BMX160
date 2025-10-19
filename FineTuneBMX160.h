@@ -511,6 +511,12 @@ namespace FineTuneBMX160
          */
         bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr);
 
+        /** 
+         * @brief Copies the BMX160 error code 0x02<4:1> to error_code
+         * 
+         * @param error_code Variable to copy the error code to
+         * @return bool success/fail status
+         */
         bool getErrorRegister(uint8_t &error_code);
         
         /**
