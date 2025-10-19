@@ -379,7 +379,7 @@ namespace FineTuneBMX160
          * @param Wire Wire instance
          * @param address Device address
          */
-        BMX160(arduino::TwoWire &Wire, uint8_t address = UINT8_C(0x68));
+        BMX160(uint8_t address);
         // --------------------------------------------------------------------------
 
         /**
@@ -514,7 +514,6 @@ namespace FineTuneBMX160
         bool getErrorRegister(uint8_t &error_code);
 
     protected:
-        arduino::TwoWire &Wire = Wire;         ///< Communication object to employ
         const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range

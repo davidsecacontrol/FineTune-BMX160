@@ -27,7 +27,7 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
 /** @brief Conversion factor from Gs to m^2/s */
 constexpr float G_TO_MS2 = 9.80665f;
 
-BMX160::BMX160(arduino::TwoWire &Wire, uint8_t address) : Wire(Wire), address{address} {};
+BMX160::BMX160(uint8_t address) : address{address} {};
 
 bool BMX160::begin()
 {
@@ -535,10 +535,10 @@ bool BMX160::getErrorRegister(uint8_t &error_code)
 
 bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
 {
-    this->Wire.beginTransmission(this->address);
-    this->Wire.write(static_cast<uint8_t>(reg));
-    this->Wire.write(&byte, 1);
-    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+    Wire.beginTransmission(this->address);
+    Wire.write(static_cast<uint8_t>(reg));
+    Wire.write(&byte, 1);
+    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
 
     if (this->accelerometer_power_mode != ACCEL::POWER_MODE::NORMAL &&
         this->gyroscope_power_mode != GYRO::POWER_MODE::NORMAL &&
@@ -562,10 +562,10 @@ bool BMX160::writeReg(REGISTER const *const regs, uint8_t *const buffer, size_t 
 
     for (size_t i = 0; i < length; i++)
     {
-        this->Wire.beginTransmission(this->address);
-        this->Wire.write(static_cast<uint8_t>(regs[i]));
-        this->Wire.write(&buffer[i], 1);
-        this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+        Wire.beginTransmission(this->address);
+        Wire.write(static_cast<uint8_t>(regs[i]));
+        Wire.write(&buffer[i], 1);
+        this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
         if (wait_per_write)
         {
             this->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
@@ -583,9 +583,9 @@ bool BMX160::readReg(const REGISTER reg, uint8_t &buffer)
 bool BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
 {
     // Send register to read
-    this->Wire.beginTransmission(this->address);
-    this->Wire.write(reinterpret_cast<const uint8_t *>(&reg), 1);
-    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
+    Wire.beginTransmission(this->address);
+    Wire.write(reinterpret_cast<const uint8_t *>(&reg), 1);
+    this->state = static_cast<ERROR_CODE>(Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
 
     if (this->state != ERROR_CODE::ALL_OK)
     {
@@ -593,20 +593,20 @@ bool BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
     }
 
     // Read the result
-    this->Wire.requestFrom(this->address, length);
+    Wire.requestFrom(this->address, length);
     for (size_t i = 0; i < length; i++)
     {
-        buffer[i] = this->Wire.read();
+        buffer[i] = Wire.read();
     }
-    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
 
     return this->state == ERROR_CODE::ALL_OK;
 }
 
 bool BMX160::isConnected()
 {
-    this->Wire.beginTransmission(this->address);
-    this->state = static_cast<ERROR_CODE>(this->Wire.endTransmission());
+    Wire.beginTransmission(this->address);
+    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
     return this->state == ERROR_CODE::ALL_OK;
 }
 
