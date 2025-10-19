@@ -442,7 +442,13 @@ namespace FineTuneBMX160
         bool getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn);
 
         /**
-         * @brief Reads the sensor temperature data. Updated never (all sensors suspended) every 10ms +- (gyro enabled) or 1.28s lining with bit 15 of sensortime (gyro suspended / fast mode)
+         * @brief Reads the sensor temperature data. Updates:
+         * 
+         * - All sensors suspended - never 
+         * 
+         * - Gyro normal mode - every 10ms 
+         * 
+         * - Gyro suspended / fastmode - every 1.28s alligning with SENSORTIME<15>
          *
          * @param temp Read temperature value
          * @return bool success/fail status
@@ -473,7 +479,7 @@ namespace FineTuneBMX160
         bool setAccelOdr(const ACCEL::ODR odr);
 
         /**
-         * @brief Copies to odr the chosen sampling frequency for the accelerometer
+         * @brief Copies to odr the current sampling frequency for the accelerometer
          *
          * @param odr
          * @return bool success/fail status
@@ -489,7 +495,7 @@ namespace FineTuneBMX160
         bool setGyroOdr(const GYRO::ODR odr);
 
         /**
-         * @brief Copies to odr the chosen sampling frequency for the gyroscope
+         * @brief Copies to odr the current sampling frequency for the gyroscope
          *
          * @param odr
          * @return bool success/fail status
@@ -505,7 +511,7 @@ namespace FineTuneBMX160
         bool setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr);
 
         /**
-         * @brief Copies to odr the chosen sampling frequency for the magnetometer interface
+         * @brief Copies to odr the current sampling frequency for the magnetometer interface
          *
          * @param odr
          * @return bool success/fail status
@@ -546,10 +552,13 @@ namespace FineTuneBMX160
         GYRO::POWER_MODE gyroscope_power_mode = GYRO::POWER_MODE::SUSPEND;
         MAGN::POWER_MODE magnetometer_power_mode = MAGN::POWER_MODE::SUSPEND;
         MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
+
         ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100;
         GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100;
         MAGN_INTERFACE::ODR magnetometer_interface_odr = MAGN_INTERFACE::ODR::Hz100;
+
         MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL;
+
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
          *
