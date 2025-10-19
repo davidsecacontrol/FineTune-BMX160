@@ -88,6 +88,25 @@ bool BMX160::setAccelRange(ACCEL::RANGE range)
     return true;
 }
 
+bool BMX160::getAccelRange(ACCEL::RANGE& range){
+    
+    uint8_t byte;
+    if(!this->readReg(REGISTER::ACC_RANGE,byte)){
+        return false;
+    }
+    byte &= 0b00001111; // Mask for <3:0>
+
+    range = static_cast<ACCEL::RANGE>(byte);  
+
+    // Values different from defined masks are G2
+    if(range != ACCEL::RANGE::G2 && range != ACCEL::RANGE::G4 && range != ACCEL::RANGE::G8 && range != ACCEL::RANGE::G16){
+        range = ACCEL::RANGE::G2;
+    }
+
+    return true;
+}
+
+
 bool BMX160::setGyroRange(GYRO::RANGE range)
 {
 
@@ -105,6 +124,19 @@ bool BMX160::setGyroRange(GYRO::RANGE range)
     {
         return false;
     }
+    return true;
+}
+
+bool BMX160::getGyroRange(GYRO::RANGE& range){
+    
+    uint8_t byte;
+    if(!this->readReg(REGISTER::GYR_RANGE,byte)){
+        return false;
+    }
+    byte &= 0b00000111; // Mask for <2:0>
+
+    range = static_cast<GYRO::RANGE>(byte);  
+
     return true;
 }
 

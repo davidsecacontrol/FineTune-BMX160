@@ -399,12 +399,28 @@ namespace FineTuneBMX160
         bool setAccelRange(ACCEL::RANGE range);
 
         /**
+         * @brief Copies to range the current range for the accelerometer
+         *
+         * @param range
+         * @return bool success/fail status
+         */
+        bool getAccelRange(ACCEL::RANGE& range);
+
+        /**
          * @brief Set specific gyroscope data range
          *
          * @param range Desired range
          * @return bool success/fail status
          */
         bool setGyroRange(GYRO::RANGE range);
+
+        /**
+         * @brief Copies to range the current range for the gyroscope
+         *
+         * @param range
+         * @return bool success/fail status
+         */
+        bool getGyroRange(GYRO::RANGE& range);
 
         /**
          * @brief Set the accelerometer power mode.
