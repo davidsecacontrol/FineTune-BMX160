@@ -1,9 +1,9 @@
 /**
  * @file FineTuneBMX160.cpp
- * @author your name (you@domain.com)
+ * @author David Secades (davidsecacontrol@gmail.com)
  * @brief Library source
- * @version 0.1
- * @date 2025-08-18
+ * @version 1.0.0
+ * @date 2025-10-20
  *
  *
  */

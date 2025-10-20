@@ -1,9 +1,9 @@
 /**
  * @file FineTuneBMX160.h
- * @author David Secades (dasecacontrol@gmail.com)
+ * @author David Secades (davidsecacontrol@gmail.com)
  * @brief Library header
- * @version 0.1
- * @date 2025-08-18
+ * @version 1.0.0
+ * @date 2025-10-20
  *
  *
  */
@@ -12,7 +12,6 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <SPI.h>
 #include <stdint.h>
 namespace FineTuneBMX160
 {
@@ -129,9 +128,9 @@ namespace FineTuneBMX160
         ERR_REG = UINT8_C(10)
     };
 
-    constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000;
-    constexpr uint8_t I2C_ADDRESS = 0x68;
-    constexpr uint8_t CHIP_ID = 216;
+    constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000; ///< Maximum I2C clock frequency allowed for BMX160
+    constexpr uint8_t I2C_ADDRESS = 0x68;   ///< Standard I2C address for BMX160
+    constexpr uint8_t CHIP_ID = 216;    ///< Chip ID for BMX160
 
     namespace ACCEL
     {
@@ -152,7 +151,7 @@ namespace FineTuneBMX160
             LOW_POWER = 0b00010010,
             SUSPEND = 0b00010000
         };
-
+        /** @brief Allowed accelerometer ODRs. Values represent the mask */
         enum struct ODR : uint8_t
         {
             Hz25_over_32 = UINT8_C(1),
@@ -198,6 +197,7 @@ namespace FineTuneBMX160
             SUSPEND = 0b00010100
         };
 
+        /** @brief Allowed gyroscope ODRs. Values represent the mask */
         enum struct ODR : uint8_t
         {
             Hz25 = UINT8_C(6),
@@ -236,6 +236,7 @@ namespace FineTuneBMX160
 
         namespace PRESETS
         {
+            /** @brief Allowed magnetometer preset modes for XY axes. Values represent the mask */
             enum struct REPXY : uint8_t
             {
                 LOW_POWER = UINT8_C(0x01),
@@ -244,6 +245,7 @@ namespace FineTuneBMX160
                 HIGH_ACCURACY = UINT8_C(0x17)
             };
 
+            /** @brief Allowed magnetometer preset modes for Z axis. Values represent the mask */
             enum struct REPZ : uint8_t
             {
                 LOW_POWER = UINT8_C(0x02),
@@ -377,7 +379,6 @@ namespace FineTuneBMX160
         /**
          * @brief Constructor with specific Wire instance or device address
          *
-         * @param Wire Wire instance
          * @param address Device address
          */
         BMX160(uint8_t address);
@@ -579,25 +580,24 @@ namespace FineTuneBMX160
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
         GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
 
-        float accelerometer_sensitivity = ACCEL::SENSITIVITY[0];
-        float gyroscope_sensitivity = GYRO::SENSITIVITY[0];
-        float magnetometer_sensitivity = MAGN::SENSITIVITY[0];
+        float accelerometer_sensitivity = ACCEL::SENSITIVITY[0]; ///< Current accelerometer sensitivity
+        float gyroscope_sensitivity = GYRO::SENSITIVITY[0]; ///< Current gyroscope sensitivity
+        float magnetometer_sensitivity = MAGN::SENSITIVITY[0];  ///< Current magnetometer sensitivity
         // IF ALL 3 (not interface) == SUSPEND -> DO NOT:  ADD RULES AND CHECK IF TRUE
         // - burst write                    IMPLEMENTED (not supported)
         // - Write without a 0.4 ms wait    IMPLEMENETED
         // - burst read on FIFO_DATA        IMPLEMENTED
         // IF ALL 3 (not interface) == SUSPEND / LOW_POWER -> DO NOT:
         // - read the FIFO
-        ACCEL::POWER_MODE accelerometer_power_mode = ACCEL::POWER_MODE::SUSPEND;
-        GYRO::POWER_MODE gyroscope_power_mode = GYRO::POWER_MODE::SUSPEND;
-        MAGN::POWER_MODE magnetometer_power_mode = MAGN::POWER_MODE::SUSPEND;
-        MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
+        ACCEL::POWER_MODE accelerometer_power_mode = ACCEL::POWER_MODE::SUSPEND; ///< Current accelerometer power mode
+        GYRO::POWER_MODE gyroscope_power_mode = GYRO::POWER_MODE::SUSPEND;  ///< Current gyroscope power mode
+        MAGN_INTERFACE::POWER_MODE magnetometer_interface_power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND; ///< Current magnetometer interface power mode
 
-        ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100;
-        GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100;
-        MAGN_INTERFACE::ODR magnetometer_interface_odr = MAGN_INTERFACE::ODR::Hz100;
+        ACCEL::ODR accelerometer_odr = ACCEL::ODR::Hz100; ///< Current accelerometer odr setting
+        GYRO::ODR gyroscope_odr = GYRO::ODR::Hz100; ///< Current gyroscope odr setting
+        MAGN_INTERFACE::ODR magnetometer_interface_odr = MAGN_INTERFACE::ODR::Hz100; ///< Current magnetometer odr setting
 
-        MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL;
+        MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL; ///< Current values to copy to BMX160 memory
 
         /**
          * @brief Waiting function the library will employ. Can be overwritten with a derived class
