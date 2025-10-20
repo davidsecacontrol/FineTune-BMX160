@@ -500,7 +500,7 @@ namespace FineTuneBMX160
          *
          * @return bool success/fail status
          */
-        bool isConnected();
+        virtual bool isConnected();
 
         /**
          * @brief Retrieves the chip's id. Correct when == 216
@@ -622,7 +622,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer and regs arrays
          * @return bool success/fail status
          */
-        bool writeReg(REGISTER const *const reg, uint8_t *const buffer, size_t length);
+        virtual bool writeReg(REGISTER const *const reg, uint8_t const*const buffer, size_t length);
 
         /**
          * @brief Requests one byte through the I2C protocol
@@ -641,7 +641,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer buffer
          * @return bool success/fail status
          */
-        bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+        virtual bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Continuously checks register 0x1B (STATUS) for bit <1> mag_man_op = 0.

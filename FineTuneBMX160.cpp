@@ -649,23 +649,10 @@ bool BMX160::softReset(){
 
 bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
 {
-    Wire.beginTransmission(this->address);
-    Wire.write(static_cast<uint8_t>(reg));
-    Wire.write(&byte, 1);
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
-
-    if (this->accelerometer_power_mode != ACCEL::POWER_MODE::NORMAL &&
-        this->gyroscope_power_mode != GYRO::POWER_MODE::NORMAL &&
-        this->magnetometer_interface_power_mode != MAGN_INTERFACE::POWER_MODE::NORMAL)
-    {
-
-        this->wait(1); // IIt is required to wait 0.4 ms before writes
-    }
-
-    return this->state == ERROR_CODE::ALL_OK;
+    return this->writeReg(&reg,&byte,1);
 }
 
-bool BMX160::writeReg(REGISTER const *const regs, uint8_t *const buffer, size_t length)
+bool BMX160::writeReg(REGISTER const *const regs, uint8_t const*const buffer, size_t length)
 {
     // Note that the begin/end transmission bufefr size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
 
