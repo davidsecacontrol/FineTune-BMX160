@@ -125,7 +125,9 @@ namespace FineTuneBMX160
         INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7),
         NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(8),
         INVALID_ODR_SETTING = UINT8_C(9),
-        ERR_REG = UINT8_C(10)
+        ERR_REG = UINT8_C(10),
+        INVALID_RANGE_SETTING = UINT8_C(11),
+        INVALID_POWER_SETTING = UINT8_C(12)
     };
 
     constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000; ///< Maximum I2C clock frequency allowed for BMX160
@@ -397,7 +399,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        bool setAccelRange(ACCEL::RANGE range);
+        bool setAccelRange(const ACCEL::RANGE range);
 
         /**
          * @brief Copies to range the current range for the accelerometer
@@ -413,7 +415,7 @@ namespace FineTuneBMX160
          * @param range Desired range
          * @return bool success/fail status
          */
-        bool setGyroRange(GYRO::RANGE range);
+        bool setGyroRange(const GYRO::RANGE range);
 
         /**
          * @brief Copies to range the current range for the gyroscope
@@ -429,7 +431,7 @@ namespace FineTuneBMX160
          * @param power_mode
          * @return bool success/fail status
          */
-        bool setAccelPowerMode(ACCEL::POWER_MODE power_mode);
+        bool setAccelPowerMode(const ACCEL::POWER_MODE power_mode);
 
         /**
          * @brief Copies to power_mode the current power mode of the accelerometer
@@ -445,7 +447,7 @@ namespace FineTuneBMX160
          * @param power_mode
          * @return bool success/fail status
          */
-        bool setGyroPowerMode(GYRO::POWER_MODE power_mode);
+        bool setGyroPowerMode(const GYRO::POWER_MODE power_mode);
 
         /**
          * @brief Copies to power_mode the current power mode of the gyroscope
@@ -462,7 +464,7 @@ namespace FineTuneBMX160
          * @param power_mode
          * @return bool success/fail status
          */
-        bool setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode);
+        bool setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mode);
 
             /**
          * @brief Copies to power_mode the current power mode of the magnetometer interface

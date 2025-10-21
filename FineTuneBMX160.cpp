@@ -31,6 +31,9 @@ BMX160::BMX160(uint8_t address) : address{address} {};
 
 bool BMX160::begin()
 {
+
+  this->state = ERROR_CODE::UNINITIALIZED ;  
+
     if(!this->softReset()){ // Reset IMU
         return false;
     }
@@ -55,8 +58,15 @@ bool BMX160::begin()
     return true;
 }
 
-bool BMX160::setAccelRange(ACCEL::RANGE range)
+bool BMX160::setAccelRange(const ACCEL::RANGE range)
 {
+    if( (range != ACCEL::RANGE::G2) && (range != ACCEL::RANGE::G4  ) && 
+        (range != ACCEL::RANGE::G8) && (range != ACCEL::RANGE::G16 ) )
+    {
+        this->state = ERROR_CODE::INVALID_RANGE_SETTING;
+        return false;
+    }
+
     if (!this->writeReg(REGISTER::ACC_RANGE, static_cast<uint8_t>(range)))
     {
         return false;
@@ -78,7 +88,11 @@ bool BMX160::setAccelRange(ACCEL::RANGE range)
     case ACCEL::RANGE::G16:
         this->accelerometer_sensitivity = ACCEL::SENSITIVITY[3];
         break;
+    default: 
+        this->state = ERROR_CODE::INVALID_RANGE_SETTING;
+        return false; 
     }
+
     // Recommended to perform a read to remove all stall data
     DataPacket buffer;
     if (!this->getAllData(buffer, buffer, buffer))
@@ -98,7 +112,7 @@ bool BMX160::getAccelRange(ACCEL::RANGE& range){
 
     range = static_cast<ACCEL::RANGE>(byte);  
 
-    // Values different from defined masks are G2
+    // Datasheet: If a setting does not constitute one of the allowed ranges, interpret it as G2
     if(range != ACCEL::RANGE::G2 && range != ACCEL::RANGE::G4 && range != ACCEL::RANGE::G8 && range != ACCEL::RANGE::G16){
         range = ACCEL::RANGE::G2;
     }
@@ -107,8 +121,16 @@ bool BMX160::getAccelRange(ACCEL::RANGE& range){
 }
 
 
-bool BMX160::setGyroRange(GYRO::RANGE range)
+bool BMX160::setGyroRange(const GYRO::RANGE range)
 {
+
+ if ( ( range != GYRO::RANGE::DPS2000 ) && ( range != GYRO::RANGE::DPS1000 ) && 
+      ( range != GYRO::RANGE::DPS500  ) && ( range != GYRO::RANGE::DPS250  ) && 
+      ( range != GYRO::RANGE::DPS150  ) )  
+    {
+        this->state = ERROR_CODE::INVALID_RANGE_SETTING;
+        return false;
+    }
 
     if (!this->writeReg(REGISTER::GYR_RANGE, static_cast<uint8_t>(range)))
     {
@@ -137,11 +159,25 @@ bool BMX160::getGyroRange(GYRO::RANGE& range){
 
     range = static_cast<GYRO::RANGE>(byte);  
 
+    if( ( range != GYRO::RANGE::DPS2000 ) && ( range != GYRO::RANGE::DPS1000 ) && 
+      ( range != GYRO::RANGE::DPS500  ) && ( range != GYRO::RANGE::DPS250  ) && 
+      ( range != GYRO::RANGE::DPS150  ) )  
+    {
+        this->state = ERROR_CODE::INVALID_RANGE_SETTING;
+        return false;
+    }
     return true;
 }
 
-bool BMX160::setAccelPowerMode(ACCEL::POWER_MODE power_mode)
+bool BMX160::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
 {
+    if (power_mode !=  (ACCEL::POWER_MODE::NORMAL) && (power_mode !=  ACCEL::POWER_MODE::LOW_POWER) && 
+       (power_mode !=  ACCEL::POWER_MODE::SUSPEND) )
+    {
+        this->state = ERROR_CODE::INVALID_POWER_SETTING;
+        return false;
+    }
+
     if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(power_mode)))
     {
         return false;
@@ -150,11 +186,16 @@ bool BMX160::setAccelPowerMode(ACCEL::POWER_MODE power_mode)
 
     switch (power_mode)
     {
+    case ACCEL::POWER_MODE::NORMAL:  
+    case ACCEL::POWER_MODE::LOW_POWER:
+        this->wait(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
+       break;
     case ACCEL::POWER_MODE::SUSPEND:
         this->wait(1); // Takes 300us to reset MPU
         break;
     default:
-        this->wait(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
+        this->state = ERROR_CODE::INVALID_POWER_SETTING;
+        return false;
     }
 
     return true;
@@ -178,13 +219,22 @@ bool BMX160::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
         break;
 
         default:
+            this->state = ERROR_CODE::INVALID_POWER_SETTING;
             return false;
     }
     return true;
 }
 
-bool BMX160::setGyroPowerMode(GYRO::POWER_MODE power_mode)
+bool BMX160::setGyroPowerMode(const GYRO::POWER_MODE power_mode)
 {
+    if( (power_mode != GYRO::POWER_MODE::NORMAL       ) &&  
+        (power_mode != GYRO::POWER_MODE::FAST_STARTUP ) &&
+        (power_mode != GYRO::POWER_MODE::SUSPEND      ) ) 
+    {
+        this->state = ERROR_CODE::INVALID_POWER_SETTING;
+        return false;
+    }
+
     if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(power_mode)))
     {
         return false;
@@ -222,6 +272,7 @@ bool BMX160::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
         break;
 
         default:
+            this->state = ERROR_CODE::INVALID_POWER_SETTING;
             return false;
     }
 
@@ -245,14 +296,22 @@ bool BMX160::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
         break;
 
         default:
+            this->state = ERROR_CODE::INVALID_POWER_SETTING;
             return false;
     }
 
     return true;
 }
 
-bool BMX160::setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE power_mode)
+bool BMX160::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mode)
 {
+    if( (power_mode != MAGN_INTERFACE::POWER_MODE::LOW_POWER ) &&
+        (power_mode != MAGN_INTERFACE::POWER_MODE::NORMAL    ) &&
+        (power_mode != MAGN_INTERFACE::POWER_MODE::SUSPEND   ) )
+    {
+        this->state = ERROR_CODE::INVALID_POWER_SETTING;
+        return false;   
+    }
     // All power mode changes require NORMAL mode first
     if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL)))
     {
@@ -445,7 +504,7 @@ bool BMX160::setAccelOdr(const ACCEL::ODR odr)
 {
     // Check if correct odr -----------------------------
     if (odr > ACCEL::ODR::Hz1600 || odr < ACCEL::ODR::Hz25_over_32)
-    { // ODR codeoutside of defined values
+    { // ODR code outside of defined values
         this->state = ERROR_CODE::INVALID_ODR_SETTING;
         return false;
     }
@@ -503,6 +562,12 @@ bool BMX160::getAccelOdr(ACCEL::ODR &odr)
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<ACCEL::ODR>(byte);
 
+    if (odr > ACCEL::ODR::Hz1600 || odr < ACCEL::ODR::Hz25_over_32)
+    { // ODR codeo utside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
+
     return true;
 }
 
@@ -558,6 +623,11 @@ bool BMX160::getGyroOdr(GYRO::ODR &odr)
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<GYRO::ODR>(byte);
 
+    if (odr > GYRO::ODR::Hz1600 || odr < GYRO::ODR::Hz25)
+    { // ODR codeoutside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
     return true;
 }
 
@@ -627,6 +697,12 @@ bool BMX160::getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr)
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<MAGN_INTERFACE::ODR>(byte);
 
+    if (odr > MAGN_INTERFACE::ODR::Hz100 || odr < MAGN_INTERFACE::ODR::Hz25_over_2)
+    { // ODR codeoutside of defined values
+        this->state = ERROR_CODE::INVALID_ODR_SETTING;
+        return false;
+    }
+    
     return true;
 }
 
