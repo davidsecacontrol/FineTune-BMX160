@@ -37,6 +37,9 @@ For other functionalities, check the library examples.
 - Offest compensation
 - Certain low-power configurations
 
+## Contributors
+- Jens Dalsgaard Nielsen - Increased robustness via more function guards
+
 
 
 
