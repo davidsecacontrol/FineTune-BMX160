@@ -38,7 +38,7 @@ For other functionalities, check the library examples.
 - Certain low-power configurations
 
 ## Contributors
-- Jens Dalsgaard Nielsen - Increased robustness via more function guards
+- Jens Dalsgaard Nielsen - Increased robustness via extra function guards
 
 
 
