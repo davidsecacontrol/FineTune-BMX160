@@ -50,6 +50,25 @@ namespace FineTuneBMX160
         uint32_t sensortime; ///< Local sensor time, 24 bits with wrapping, 39us/LSB
     } DataPacket;
 
+
+    class TimingClassTemplate {
+        public:
+            /**
+             * @brief Timing function, wait for time miliseconds.
+             * 
+             * @param time Delay time in miliseconds
+             */
+            virtual void wait(const uint32_t time);
+    };
+
+    class ArduinoBlockingDelay : public TimingClassTemplate {
+        public:
+        void wait(const uint32_t time) override {
+            delay(time);
+        }
+    };
+
+
     /**
      * @brief Sensor API. All communication with sensor should happen throuh this library
      *
