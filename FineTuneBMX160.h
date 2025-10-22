@@ -67,13 +67,15 @@ namespace FineTuneBMX160
             delay(time);
         }
     };
+    
 
 
     /**
      * @brief Sensor API. All communication with sensor should happen throuh this library
      *
      */
-    class BMX160
+    template<class TimingClassTemplate>
+    class BMX160_Template
     {
     public:
         /**
@@ -83,14 +85,14 @@ namespace FineTuneBMX160
         ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
 
         // Initializers --------------------------------------------------------------
-        BMX160() = default;
+        BMX160_Template() = default;
 
         /**
          * @brief Constructor with specific Wire instance or device address
          *
          * @param address Device address
          */
-        BMX160(uint8_t address);
+        BMX160_Template(uint8_t address);
         // --------------------------------------------------------------------------
 
         /**
@@ -284,6 +286,8 @@ namespace FineTuneBMX160
         bool softReset();
         
     protected:
+        TimingClassTemplate timer;
+
         const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
@@ -308,11 +312,6 @@ namespace FineTuneBMX160
 
         MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL; ///< Current values to copy to BMX160 memory
 
-        /**
-         * @brief Waiting function the library will employ. Can be overwritten with a derived class
-         *
-         */
-        virtual void wait(unsigned long time);
 
         /**
          * @brief Sends a write command through the I2C protocol
@@ -378,6 +377,14 @@ namespace FineTuneBMX160
         bool MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer);
     };
 
+    #include"FineTuneBMX160.tpp"
+
+    using BMX160 = BMX160_Template<ArduinoBlockingDelay>;
 }
+
+
+
+
+
 
 #endif

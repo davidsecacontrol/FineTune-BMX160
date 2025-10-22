@@ -9,17 +9,16 @@ using namespace FineTuneBMX160;
 // - bool isConnected()
 
 // To port this library to other architectures, or allow concurrency simply override these definitions accordingly:
-class BMX160_concurrency :public BMX160{ 
-    protected:
-
-    void wait(unsigned long time) override{
-        Serial.print("//Implement a concurrent delay here//\n");
-        delay(time);
-    };
+class UserDefinedTimer :public TimingClassTemplate{ 
+    public:
+        void wait(const uint32_t time) override{
+            Serial.print("//Implement a concurrent delay here//\n");
+            delay(time);
+        };
 };
 
 
-BMX160_concurrency bmx160;
+BMX160_Template<UserDefinedTimer> bmx160;
 
 void setup()
 {
