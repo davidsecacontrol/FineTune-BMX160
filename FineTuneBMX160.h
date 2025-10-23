@@ -38,7 +38,7 @@ namespace FineTuneBMX160
     };
 
     constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000; ///< Maximum I2C clock frequency allowed for BMX160
-    constexpr uint8_t I2C_ADDRESS = 0x68;   ///< Standard I2C address for BMX160
+    constexpr uint8_t CHIP_I2C_ADDRESS = 0x68;   ///< Standard I2C address for BMX160
     constexpr uint8_t CHIP_ID = 216;    ///< Chip ID for BMX160
 
     /** @brief Single sensor measurement */
@@ -67,14 +67,120 @@ namespace FineTuneBMX160
             delay(time);
         }
     };
-    
+
+    class ComunicationProtocolTemplate {
+        public:
+        /**
+         * @brief Returns true if IMU acknowledges conenction
+         *
+         * @return bool success/fail status
+         */
+
+        virtual bool isConnected();
+        /**
+         * @brief Sends a write command through the I2C protocol
+         *
+         * @param reg Reister to write to
+         * @param byte 8-bit value to write
+         * @return bool success/fail status
+         */
+        virtual uint8_t writeReg(const uint8_t reg, const uint8_t byte){
+            return this->writeReg(&reg,&byte,1);
+        }
+
+        /**
+         * @brief Sends a burst of write commands through the I2C protocol.
+         *
+         * @param reg Arrays of registers to write to
+         * @param buffer Arrays of 8-bit values to write to
+         * @param length Length of buffer and regs arrays
+         * @return bool success/fail status
+         */
+        virtual uint8_t writeReg(uint8_t const *const reg, uint8_t const*const buffer, size_t length);
+
+        /**
+         * @brief Requests one byte through the I2C protocol
+         *
+         * @param reg Register to read from
+         * @param buffer 8-bit buffer for storing read value
+         * @return bool success/fail status
+         */
+        virtual uint8_t readReg(const uint8_t reg, uint8_t &buffer){
+            return this->readReg(reg, &buffer, 1);
+        }
+
+        /**
+         * @brief Requests a variable number of bytes through the I2C protocol
+         *
+         * @param reg Register to read from
+         * @param buffer Pointer to 8-bit buffer of length length
+         * @param length Length of buffer buffer
+         * @return bool success/fail status
+         */
+        virtual uint8_t readReg(const uint8_t reg, uint8_t *const buffer, size_t length);
+    };
+
+    template<uint8_t I2C_address>
+    class I2C_Protocol : public ComunicationProtocolTemplate{
+        public:
+        uint8_t readReg(const uint8_t reg, uint8_t &buffer) override {
+            return this->readReg(reg, &buffer, 1);
+        }
+        uint8_t writeReg(const uint8_t reg, const uint8_t byte) override {
+            return this->writeReg(&reg,&byte,1);
+        }
+        bool isConnected()
+        {
+            Wire.beginTransmission(I2C_address);
+            return !Wire.endTransmission();
+        }
+        uint8_t writeReg(uint8_t const *const reg, uint8_t const*const buffer, size_t length) override {
+            // Note that the begin/end transmission bufefr size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
+            uint8_t state = 0; 
+            for (size_t i = 0; i < length; i++)
+            {
+                Wire.beginTransmission(I2C_address);
+                Wire.write(reg[i]);
+                Wire.write(&buffer[i], 1);
+                state = Wire.endTransmission();
+                if(state != 0){ // I2C error
+                    return state;
+                }
+            }
+
+            return state;
+        }
+
+
+        uint8_t readReg(const uint8_t reg, uint8_t *const buffer, size_t length) override {
+            uint8_t state = 0;
+            // Send register to read
+            Wire.beginTransmission(I2C_address);
+            Wire.write(&reg, 1);
+            state = Wire.endTransmission(false); // Error to be addressed, "false" to not release bus
+            if (state != 0)
+            {
+                return state;
+            }
+
+            // Read the result
+            Wire.requestFrom(I2C_address, length);
+            for (size_t i = 0; i < length; i++)
+            {
+                buffer[i] = Wire.read();
+            }
+            state= Wire.endTransmission();
+            return state;
+        }
+    };
+
 
 
     /**
      * @brief Sensor API. All communication with sensor should happen throuh this library
      *
      */
-    template<class TimingClassTemplate>
+    template<class TimingClassTemplate, class ComunicationProtocolTemplate>
     class BMX160_Template
     {
     public:
@@ -84,15 +190,9 @@ namespace FineTuneBMX160
          */
         ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
 
-        // Initializers --------------------------------------------------------------
-        BMX160_Template() = default;
 
-        /**
-         * @brief Constructor with specific Wire instance or device address
-         *
-         * @param address Device address
-         */
-        BMX160_Template(uint8_t address);
+        BMX160_Template()  = default;
+
         // --------------------------------------------------------------------------
 
         /**
@@ -207,12 +307,6 @@ namespace FineTuneBMX160
          */
         bool getTemp(float &temp);
 
-        /**
-         * @brief Returns true if IMU acknowledges conenction
-         *
-         * @return bool success/fail status
-         */
-        virtual bool isConnected();
 
         /**
          * @brief Retrieves the chip's id. Correct when == 216
@@ -287,8 +381,7 @@ namespace FineTuneBMX160
         
     protected:
         TimingClassTemplate timer;
-
-        const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
+        ComunicationProtocolTemplate CommInterface;
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
         GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
@@ -313,43 +406,7 @@ namespace FineTuneBMX160
         MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL; ///< Current values to copy to BMX160 memory
 
 
-        /**
-         * @brief Sends a write command through the I2C protocol
-         *
-         * @param reg Reister to write to
-         * @param byte 8-bit value to write
-         * @return bool success/fail status
-         */
-        bool writeReg(const REGISTER reg, const uint8_t byte);
 
-        /**
-         * @brief Sends a burst of write commands through the I2C protocol.
-         *
-         * @param reg Arrays of registers to write to
-         * @param buffer Arrays of 8-bit values to write to
-         * @param length Length of buffer and regs arrays
-         * @return bool success/fail status
-         */
-        virtual bool writeReg(REGISTER const *const reg, uint8_t const*const buffer, size_t length);
-
-        /**
-         * @brief Requests one byte through the I2C protocol
-         *
-         * @param reg Register to read from
-         * @param buffer 8-bit buffer for storing read value
-         * @return bool success/fail status
-         */
-        bool readReg(const REGISTER reg, uint8_t &buffer);
-
-        /**
-         * @brief Requests a variable number of bytes through the I2C protocol
-         *
-         * @param reg Register to read from
-         * @param buffer Pointer to 8-bit buffer of length length
-         * @param length Length of buffer buffer
-         * @return bool success/fail status
-         */
-        virtual bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Continuously checks register 0x1B (STATUS) for bit <1> mag_man_op = 0.
@@ -379,7 +436,7 @@ namespace FineTuneBMX160
 
     #include"FineTuneBMX160.tpp"
 
-    using BMX160 = BMX160_Template<ArduinoBlockingDelay>;
+    using BMX160 = BMX160_Template<ArduinoBlockingDelay,I2C_Protocol<CHIP_I2C_ADDRESS>>;
 }
 
 

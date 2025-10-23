@@ -10,6 +10,8 @@
 
 #include "FineTuneBMX160.h"
 
+using namespace FineTuneBMX160;
+
 // Utility functions:----------------
 
 /**
@@ -26,11 +28,9 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
 /** @brief Conversion factor from Gs to m^2/s */
 constexpr float G_TO_MS2 = 9.80665f;
 
-template<class TimingClassTemplate>
-BMX160_Template<TimingClassTemplate>::BMX160_Template(uint8_t address) : address{address} {};
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::begin()
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::begin()
 {
 
   this->state = ERROR_CODE::UNINITIALIZED ;  
@@ -38,17 +38,15 @@ bool BMX160_Template<TimingClassTemplate>::begin()
     if(!this->softReset()){ // Reset IMU
         return false;
     }
-    
+    this->timer.wait(1);
     if (!this->setAccelPowerMode(ACCEL::POWER_MODE::NORMAL)) 
     {
         return false;
     }
-
     if (!this->setGyroPowerMode(GYRO::POWER_MODE::NORMAL)) 
     {
         return false;
     }
-
     if (!this->setMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE::NORMAL))
     {
         return false;
@@ -59,8 +57,8 @@ bool BMX160_Template<TimingClassTemplate>::begin()
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setAccelRange(const ACCEL::RANGE range)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setAccelRange(const ACCEL::RANGE range)
 {
     if( (range != ACCEL::RANGE::G2) && (range != ACCEL::RANGE::G4  ) && 
         (range != ACCEL::RANGE::G8) && (range != ACCEL::RANGE::G16 ) )
@@ -69,7 +67,8 @@ bool BMX160_Template<TimingClassTemplate>::setAccelRange(const ACCEL::RANGE rang
         return false;
     }
 
-    if (!this->writeReg(REGISTER::ACC_RANGE, static_cast<uint8_t>(range)))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::ACC_RANGE), static_cast<uint8_t>(range)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
@@ -104,13 +103,17 @@ bool BMX160_Template<TimingClassTemplate>::setAccelRange(const ACCEL::RANGE rang
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getAccelRange(ACCEL::RANGE& range){
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getAccelRange(ACCEL::RANGE& range){
     
     uint8_t byte;
-    if(!this->readReg(REGISTER::ACC_RANGE,byte)){
+
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::ACC_RANGE), byte));
+    if(this->state != ERROR_CODE::ALL_OK)
+    {
         return false;
     }
+    
     byte &= 0b00001111; // Mask for <3:0>
 
     range = static_cast<ACCEL::RANGE>(byte);  
@@ -124,8 +127,8 @@ bool BMX160_Template<TimingClassTemplate>::getAccelRange(ACCEL::RANGE& range){
 }
 
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setGyroRange(const GYRO::RANGE range)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setGyroRange(const GYRO::RANGE range)
 {
 
  if ( ( range != GYRO::RANGE::DPS2000 ) && ( range != GYRO::RANGE::DPS1000 ) && 
@@ -135,11 +138,13 @@ bool BMX160_Template<TimingClassTemplate>::setGyroRange(const GYRO::RANGE range)
         this->state = ERROR_CODE::INVALID_RANGE_SETTING;
         return false;
     }
-
-    if (!this->writeReg(REGISTER::GYR_RANGE, static_cast<uint8_t>(range)))
+    
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::GYR_RANGE), static_cast<uint8_t>(range)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
     this->gyroscope_range = range;
 
     this->gyroscope_sensitivity = GYRO::SENSITIVITY[static_cast<size_t>(this->gyroscope_range)]; // ONly allowed as mask goes from 0 and up 1 by 1
@@ -153,13 +158,17 @@ bool BMX160_Template<TimingClassTemplate>::setGyroRange(const GYRO::RANGE range)
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getGyroRange(GYRO::RANGE& range){
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getGyroRange(GYRO::RANGE& range){
     
     uint8_t byte;
-    if(!this->readReg(REGISTER::GYR_RANGE,byte)){
+
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::GYR_RANGE), byte));
+    if(this->state != ERROR_CODE::ALL_OK)
+    {
         return false;
     }
+
     byte &= 0b00000111; // Mask for <2:0>
 
     range = static_cast<GYRO::RANGE>(byte);  
@@ -174,8 +183,8 @@ bool BMX160_Template<TimingClassTemplate>::getGyroRange(GYRO::RANGE& range){
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
 {
     if (power_mode !=  (ACCEL::POWER_MODE::NORMAL) && (power_mode !=  ACCEL::POWER_MODE::LOW_POWER) && 
        (power_mode !=  ACCEL::POWER_MODE::SUSPEND) )
@@ -184,10 +193,12 @@ bool BMX160_Template<TimingClassTemplate>::setAccelPowerMode(const ACCEL::POWER_
         return false;
     }
 
-    if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(power_mode)))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::CMD), static_cast<uint8_t>(power_mode)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
     this->accelerometer_power_mode = power_mode;
 
     switch (power_mode)
@@ -207,10 +218,13 @@ bool BMX160_Template<TimingClassTemplate>::setAccelPowerMode(const ACCEL::POWER_
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
     uint8_t byte;
-    if(!this->readReg(REGISTER::PMU_STATUS,byte)){
+
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::PMU_STATUS), byte));
+    if(this->state != ERROR_CODE::ALL_OK)
+    {
         return false;
     }
     
@@ -232,8 +246,8 @@ bool BMX160_Template<TimingClassTemplate>::getAccelPowerMode(ACCEL::POWER_MODE& 
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setGyroPowerMode(const GYRO::POWER_MODE power_mode)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setGyroPowerMode(const GYRO::POWER_MODE power_mode)
 {
     if( (power_mode != GYRO::POWER_MODE::NORMAL       ) &&  
         (power_mode != GYRO::POWER_MODE::FAST_STARTUP ) &&
@@ -243,10 +257,12 @@ bool BMX160_Template<TimingClassTemplate>::setGyroPowerMode(const GYRO::POWER_MO
         return false;
     }
 
-    if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(power_mode)))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::CMD), static_cast<uint8_t>(power_mode)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     this->gyroscope_power_mode = power_mode;
 
@@ -262,12 +278,16 @@ bool BMX160_Template<TimingClassTemplate>::setGyroPowerMode(const GYRO::POWER_MO
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
     uint8_t byte;
-    if(!this->readReg(REGISTER::PMU_STATUS,byte)){
+
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::PMU_STATUS), byte));
+    if(this->state != ERROR_CODE::ALL_OK)
+    {
         return false;
     }
+
     
     switch((byte & 0b00001100) >> 2){
         case 0:
@@ -288,12 +308,15 @@ bool BMX160_Template<TimingClassTemplate>::getGyroPowerMode(GYRO::POWER_MODE& po
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
     uint8_t byte;
-    if(!this->readReg(REGISTER::PMU_STATUS,byte)){
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::PMU_STATUS), byte));
+    if(this->state != ERROR_CODE::ALL_OK)
+    {
         return false;
     }
+
     switch(byte & 0b00000011){
         case 0:
             power_mode = MAGN_INTERFACE::POWER_MODE::SUSPEND;
@@ -313,8 +336,8 @@ bool BMX160_Template<TimingClassTemplate>::getMagnInterfacePowerMode(MAGN_INTERF
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mode)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mode)
 {
     if( (power_mode != MAGN_INTERFACE::POWER_MODE::LOW_POWER ) &&
         (power_mode != MAGN_INTERFACE::POWER_MODE::NORMAL    ) &&
@@ -324,16 +347,19 @@ bool BMX160_Template<TimingClassTemplate>::setMagnInterfacePowerMode(const MAGN_
         return false;   
     }
     // All power mode changes require NORMAL mode first
-    if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL)))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::CMD), static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::NORMAL)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
     this->timer.wait(1); // 0.5 + 0.3 ms
 
     if (power_mode == MAGN_INTERFACE::POWER_MODE::SUSPEND)
     {
-        if (!this->writeReg(REGISTER::MAG_IF_0, 0x80))
-        { // Switch interface to setup mode
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_0),  0x80));
+        if(this->state != ERROR_CODE::ALL_OK)
+        {
             return false;
         }
 
@@ -341,17 +367,20 @@ bool BMX160_Template<TimingClassTemplate>::setMagnInterfacePowerMode(const MAGN_
         {
             return false;
         }
-        if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::SUSPEND)))
+        
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::CMD),  static_cast<uint8_t>(MAGN_INTERFACE::POWER_MODE::SUSPEND)));
+        if(this->state != ERROR_CODE::ALL_OK)
         {
             return false;
         }
+
         this->timer.wait(1); // 0.5 + 0.3 ms
     }
     else
     {
-
-        if (!this->writeReg(REGISTER::MAG_IF_0, 0x80))
-        { // Switch interface to setup mode
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_0),  0x80));
+        if(this->state != ERROR_CODE::ALL_OK)
+        {
             return false;
         }
         if (!this->MagnIndirectWrite(MAGN::REGISTER::POWER_MODE, static_cast<uint8_t>(MAGN::POWER_MODE::SLEEP)))
@@ -371,23 +400,31 @@ bool BMX160_Template<TimingClassTemplate>::setMagnInterfacePowerMode(const MAGN_
         {
             return false;
         }
-        if (!this->writeReg(REGISTER::MAG_IF_1, 0x42))
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_1),  0x42));
+        if(this->state != ERROR_CODE::ALL_OK)
         {
             return false;
         }
+
         // Set odr and return to power mode
-        if (!this->writeReg(REGISTER::MAG_CONF, static_cast<uint8_t>(this->magnetometer_interface_odr)))
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_CONF),  static_cast<uint8_t>(this->magnetometer_interface_odr)));
+        if(this->state != ERROR_CODE::ALL_OK)
         {
             return false;
         }
-        if (!this->writeReg(REGISTER::MAG_IF_0, 0x03))
-        { // Read 6 values
-            return false;
-        }
-        if (!this->writeReg(REGISTER::CMD, static_cast<uint8_t>(power_mode)))
+
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_0),  0x03));
+        if(this->state != ERROR_CODE::ALL_OK)
         {
             return false;
         }
+
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::CMD),  static_cast<uint8_t>(power_mode)));
+        if(this->state != ERROR_CODE::ALL_OK)
+        {
+            return false;
+        }
+
         this->timer.wait(1);
     }
 
@@ -396,14 +433,16 @@ bool BMX160_Template<TimingClassTemplate>::setMagnInterfacePowerMode(const MAGN_
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data)
 {
-    if (!this->writeReg(REGISTER::MAG_IF_3, data))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_3),  data));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
-    if (!this->writeReg(REGISTER::MAG_IF_2, static_cast<uint8_t>(reg)))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_2),   static_cast<uint8_t>(reg)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
@@ -415,35 +454,39 @@ bool BMX160_Template<TimingClassTemplate>::MagnIndirectWrite(MAGN::REGISTER reg,
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer)
 {
-    if (!this->writeReg(REGISTER::MAG_IF_1, static_cast<uint8_t>(reg)))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::MAG_IF_1),   static_cast<uint8_t>(reg)));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
     if (!this->waitForMagn())
     {
         return false;
     }
-    if (!this->readReg(REGISTER::DATA_0, buffer))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::DATA_0),   buffer));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
 
+
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::waitForMagn()
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::waitForMagn()
 {
     bool waiting = true;
     uint8_t read_data;
 
     do
     {
-
-        if (!this->readReg(REGISTER::STATUS, read_data))
+        this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::STATUS),   read_data));
+        if(this->state != ERROR_CODE::ALL_OK)
         {
             return false;
         }
@@ -454,8 +497,8 @@ bool BMX160_Template<TimingClassTemplate>::waitForMagn()
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
     if (this->accelerometer_power_mode != ACCEL::POWER_MODE::NORMAL &&
         this->gyroscope_power_mode != GYRO::POWER_MODE::NORMAL &&
@@ -466,10 +509,12 @@ bool BMX160_Template<TimingClassTemplate>::getAllData(DataPacket &accel, DataPac
         return false;
     }
     uint8_t buffer[23]; // DATA from 0 to 19,  TIME from 20 to 22
-    if (!this->readReg(REGISTER::DATA_0, buffer, 23))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::DATA_0),   buffer,23));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
-    };
+    }
+
 
     CopyBufferToDataPacket(accel, &buffer[14], this->accelerometer_sensitivity * G_TO_MS2);
     CopyBufferToDataPacket(gyro, &buffer[8], this->gyroscope_sensitivity);
@@ -484,12 +529,12 @@ bool BMX160_Template<TimingClassTemplate>::getAllData(DataPacket &accel, DataPac
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getTemp(float &temp)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getTemp(float &temp)
 {
     uint8_t buffer[2];
-
-    if (!this->readReg(REGISTER::TEMPERATURE_0, buffer, 2))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::TEMPERATURE_0),   buffer,2));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
@@ -516,8 +561,8 @@ bool BMX160_Template<TimingClassTemplate>::getTemp(float &temp)
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setAccelOdr(const ACCEL::ODR odr)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setAccelOdr(const ACCEL::ODR odr)
 {
     // Check if correct odr -----------------------------
     if (odr > ACCEL::ODR::Hz1600 || odr < ACCEL::ODR::Hz25_over_32)
@@ -541,7 +586,8 @@ bool BMX160_Template<TimingClassTemplate>::setAccelOdr(const ACCEL::ODR odr)
     mask = mask | static_cast<uint8_t>(odr);
 
     // Write to IMU -------------------------------------------------------------------------------
-    if (!writeReg(REGISTER::ACC_CONF, mask))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::ACC_CONF),  mask));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
@@ -549,10 +595,12 @@ bool BMX160_Template<TimingClassTemplate>::setAccelOdr(const ACCEL::ODR odr)
     // Check if error flag is set (occurs if ODR is not allowed) ----------------------------------
 
     uint8_t byte_read = 0;
-    if (!readReg(REGISTER::ERR_REG, byte_read))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::ERR_REG),  byte_read));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     byte_read = (byte_read & 0b00011110) >> 1; // Masking the error
     if (byte_read != 0)
@@ -567,15 +615,17 @@ bool BMX160_Template<TimingClassTemplate>::setAccelOdr(const ACCEL::ODR odr)
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getAccelOdr(ACCEL::ODR &odr)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getAccelOdr(ACCEL::ODR &odr)
 {
 
     uint8_t byte;
-    if (!readReg(REGISTER::ACC_CONF, byte))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::ACC_CONF),  byte));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<ACCEL::ODR>(byte);
@@ -589,8 +639,8 @@ bool BMX160_Template<TimingClassTemplate>::getAccelOdr(ACCEL::ODR &odr)
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setGyroOdr(const GYRO::ODR odr)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setGyroOdr(const GYRO::ODR odr)
 {
     // Check if correct odr -----------------------------
     if (odr > GYRO::ODR::Hz3200 || odr < GYRO::ODR::Hz25)
@@ -605,18 +655,22 @@ bool BMX160_Template<TimingClassTemplate>::setGyroOdr(const GYRO::ODR odr)
     mask = mask | static_cast<uint8_t>(odr);
 
     // Write to IMU -------------------------------------------------------------------------------
-    if (!writeReg(REGISTER::GYR_CONF, mask))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::GYR_CONF),  mask));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     // Check if error flag is set (occurs if ODR is not allowed) ----------------------------------
 
     uint8_t byte_read = 0;
-    if (!readReg(REGISTER::ERR_REG, byte_read))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::ERR_REG),  byte_read));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     byte_read = (byte_read & 0b00011110) >> 1; // Masking the error
     if (byte_read != 0)
@@ -631,14 +685,16 @@ bool BMX160_Template<TimingClassTemplate>::setGyroOdr(const GYRO::ODR odr)
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getGyroOdr(GYRO::ODR &odr)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getGyroOdr(GYRO::ODR &odr)
 {
     uint8_t byte;
-    if (!readReg(REGISTER::GYR_CONF, byte))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::GYR_CONF),  byte));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<GYRO::ODR>(byte);
@@ -651,8 +707,8 @@ bool BMX160_Template<TimingClassTemplate>::getGyroOdr(GYRO::ODR &odr)
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr)
 {
     // Check if correct odr -----------------------------
     // See table 11 for allowed ODR w.r.t. preset -> using regular preset
@@ -684,15 +740,19 @@ bool BMX160_Template<TimingClassTemplate>::setMagnInterfaceOdr(const MAGN_INTERF
         static_cast<uint8_t>(this->magnetometer_interface_data_size),
         static_cast<uint8_t>(this->magnetometer_interface_power_mode)};
     // Write to IMU -------------------------------------------------------------------------------
-    if (!writeReg(regs, buffer, 8))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(reinterpret_cast<uint8_t*>(regs), buffer, 8));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
     uint8_t byte_read = 0;
-    if (!readReg(REGISTER::ERR_REG, byte_read))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::ERR_REG),  byte_read));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     byte_read = (byte_read & 0b00011110) >> 1; // Masking the error code
     if (byte_read != 0)
@@ -707,14 +767,16 @@ bool BMX160_Template<TimingClassTemplate>::setMagnInterfaceOdr(const MAGN_INTERF
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr)
 {
     uint8_t byte;
-    if (!readReg(REGISTER::MAG_CONF, byte))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::MAG_CONF),  byte));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
 
     byte = byte & 0b00001111; // Mask for only the odr bits
     odr = static_cast<MAGN_INTERFACE::ODR>(byte);
@@ -728,99 +790,36 @@ bool BMX160_Template<TimingClassTemplate>::getMagnInterfaceOdr(MAGN_INTERFACE::O
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getErrorRegister(uint8_t &error_code)
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getErrorRegister(uint8_t &error_code)
 {
-    if (!readReg(REGISTER::ERR_REG, error_code))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::ERR_REG),  error_code));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
+
     return true;
 }
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::softReset(){
-    if(!writeReg(REGISTER::CMD,UINT8_C(0xB6))){
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::softReset(){
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.writeReg(static_cast<uint8_t>(REGISTER::CMD), UINT8_C(0xB6)));
+    if(this->state != ERROR_CODE::ALL_OK)
+    {
         return false;
     }
+
     return true;
 }
 
 
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::writeReg(const REGISTER reg, const uint8_t byte)
+
+template<class TimingClassTemplate,class ComunicationProtocolTemplate>
+bool BMX160_Template<TimingClassTemplate,ComunicationProtocolTemplate>::getChipID(uint8_t &chip_id)
 {
-    return this->writeReg(&reg,&byte,1);
-}
-
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::writeReg(REGISTER const *const regs, uint8_t const*const buffer, size_t length)
-{
-    // Note that the begin/end transmission bufefr size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
-
-    bool wait_per_write =
-        this->accelerometer_power_mode != ACCEL::POWER_MODE::NORMAL &&
-        this->gyroscope_power_mode != GYRO::POWER_MODE::NORMAL &&
-        this->magnetometer_interface_power_mode != MAGN_INTERFACE::POWER_MODE::NORMAL;
-
-    for (size_t i = 0; i < length; i++)
-    {
-        Wire.beginTransmission(this->address);
-        Wire.write(static_cast<uint8_t>(regs[i]));
-        Wire.write(&buffer[i], 1);
-        this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
-        if (wait_per_write)
-        {
-            this->timer.wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
-        }
-    }
-
-    return this->state == ERROR_CODE::ALL_OK;
-}
-
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::readReg(const REGISTER reg, uint8_t &buffer)
-{
-    return this->readReg(reg, &buffer, 1);
-}
-
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
-{
-    // Send register to read
-    Wire.beginTransmission(this->address);
-    Wire.write(reinterpret_cast<const uint8_t *>(&reg), 1);
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
-
-    if (this->state != ERROR_CODE::ALL_OK)
-    {
-        return false;
-    }
-
-    // Read the result
-    Wire.requestFrom(this->address, length);
-    for (size_t i = 0; i < length; i++)
-    {
-        buffer[i] = Wire.read();
-    }
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
-
-    return this->state == ERROR_CODE::ALL_OK;
-}
-
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::isConnected()
-{
-    Wire.beginTransmission(this->address);
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
-    return this->state == ERROR_CODE::ALL_OK;
-}
-
-
-template<class TimingClassTemplate>
-bool BMX160_Template<TimingClassTemplate>::getChipID(uint8_t &chip_id)
-{
-    if (!this->readReg(REGISTER::CHIP_ID, chip_id))
+    this->state = static_cast<ERROR_CODE>(this->CommInterface.readReg(static_cast<uint8_t>(REGISTER::CHIP_ID),  chip_id));
+    if(this->state != ERROR_CODE::ALL_OK)
     {
         return false;
     }
