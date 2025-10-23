@@ -27,12 +27,18 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
 /** @brief Conversion factor from Gs to m^2/s */
 constexpr float G_TO_MS2 = 9.80665f;
 
-BMX160::BMX160(uint8_t address) : address{address} {};
 
-bool BMX160::begin()
+void BMX160_Base::setTimingInterface(TimingInterface& timingImplementation){
+    this->timingImplementation = &timingImplementation;
+}
+
+bool BMX160_Base::begin()
 {
-
-  this->state = ERROR_CODE::UNINITIALIZED ;  
+    if(!this->timingImplementation){
+        this->state = ERROR_CODE::MISSING_TIMER_IMPLEMENTATION;
+        return false;
+    }
+    this->state = ERROR_CODE::UNINITIALIZED ;  
 
     if(!this->softReset()){ // Reset IMU
         return false;
@@ -58,7 +64,7 @@ bool BMX160::begin()
     return true;
 }
 
-bool BMX160::setAccelRange(const ACCEL::RANGE range)
+bool BMX160_Base::setAccelRange(const ACCEL::RANGE range)
 {
     if( (range != ACCEL::RANGE::G2) && (range != ACCEL::RANGE::G4  ) && 
         (range != ACCEL::RANGE::G8) && (range != ACCEL::RANGE::G16 ) )
@@ -102,7 +108,7 @@ bool BMX160::setAccelRange(const ACCEL::RANGE range)
     return true;
 }
 
-bool BMX160::getAccelRange(ACCEL::RANGE& range){
+bool BMX160_Base::getAccelRange(ACCEL::RANGE& range){
     
     uint8_t byte;
     if(!this->readReg(REGISTER::ACC_RANGE,byte)){
@@ -121,7 +127,7 @@ bool BMX160::getAccelRange(ACCEL::RANGE& range){
 }
 
 
-bool BMX160::setGyroRange(const GYRO::RANGE range)
+bool BMX160_Base::setGyroRange(const GYRO::RANGE range)
 {
 
  if ( ( range != GYRO::RANGE::DPS2000 ) && ( range != GYRO::RANGE::DPS1000 ) && 
@@ -149,7 +155,7 @@ bool BMX160::setGyroRange(const GYRO::RANGE range)
     return true;
 }
 
-bool BMX160::getGyroRange(GYRO::RANGE& range){
+bool BMX160_Base::getGyroRange(GYRO::RANGE& range){
     
     uint8_t byte;
     if(!this->readReg(REGISTER::GYR_RANGE,byte)){
@@ -169,7 +175,7 @@ bool BMX160::getGyroRange(GYRO::RANGE& range){
     return true;
 }
 
-bool BMX160::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
+bool BMX160_Base::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
 {
     if (power_mode !=  (ACCEL::POWER_MODE::NORMAL) && (power_mode !=  ACCEL::POWER_MODE::LOW_POWER) && 
        (power_mode !=  ACCEL::POWER_MODE::SUSPEND) )
@@ -188,10 +194,10 @@ bool BMX160::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
     {
     case ACCEL::POWER_MODE::NORMAL:  
     case ACCEL::POWER_MODE::LOW_POWER:
-        this->wait(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
+        this->timingImplementation->wait(5); // Takes Max 3.8 + 0.3 ms to turn on, whichever mode
        break;
     case ACCEL::POWER_MODE::SUSPEND:
-        this->wait(1); // Takes 300us to reset MPU
+        this->timingImplementation->wait(1); // Takes 300us to reset MPU
         break;
     default:
         this->state = ERROR_CODE::INVALID_POWER_SETTING;
@@ -201,7 +207,7 @@ bool BMX160::setAccelPowerMode(const ACCEL::POWER_MODE power_mode)
     return true;
 }
 
-bool BMX160::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
+bool BMX160_Base::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
     uint8_t byte;
     if(!this->readReg(REGISTER::PMU_STATUS,byte)){
         return false;
@@ -225,7 +231,7 @@ bool BMX160::getAccelPowerMode(ACCEL::POWER_MODE& power_mode){
     return true;
 }
 
-bool BMX160::setGyroPowerMode(const GYRO::POWER_MODE power_mode)
+bool BMX160_Base::setGyroPowerMode(const GYRO::POWER_MODE power_mode)
 {
     if( (power_mode != GYRO::POWER_MODE::NORMAL       ) &&  
         (power_mode != GYRO::POWER_MODE::FAST_STARTUP ) &&
@@ -245,16 +251,16 @@ bool BMX160::setGyroPowerMode(const GYRO::POWER_MODE power_mode)
     switch (power_mode)
     {
     case GYRO::POWER_MODE::SUSPEND:
-        this->wait(1); // Takes 300us to reset MPU
+        this->timingImplementation->wait(1); // Takes 300us to reset MPU
         break;
     default:
-        this->wait(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
+        this->timingImplementation->wait(81); // Takes Max 80 + 0.3 ms to turn on, whichever mode
     }
 
     return true;
 }
 
-bool BMX160::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
+bool BMX160_Base::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
     uint8_t byte;
     if(!this->readReg(REGISTER::PMU_STATUS,byte)){
         return false;
@@ -279,7 +285,7 @@ bool BMX160::getGyroPowerMode(GYRO::POWER_MODE& power_mode){
     return true;
 }
 
-bool BMX160::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
+bool BMX160_Base::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
     uint8_t byte;
     if(!this->readReg(REGISTER::PMU_STATUS,byte)){
         return false;
@@ -303,7 +309,7 @@ bool BMX160::getMagnInterfacePowerMode(MAGN_INTERFACE::POWER_MODE& power_mode){
     return true;
 }
 
-bool BMX160::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mode)
+bool BMX160_Base::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mode)
 {
     if( (power_mode != MAGN_INTERFACE::POWER_MODE::LOW_POWER ) &&
         (power_mode != MAGN_INTERFACE::POWER_MODE::NORMAL    ) &&
@@ -317,7 +323,7 @@ bool BMX160::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mo
     {
         return false;
     }
-    this->wait(1); // 0.5 + 0.3 ms
+    this->timingImplementation->wait(1); // 0.5 + 0.3 ms
 
     if (power_mode == MAGN_INTERFACE::POWER_MODE::SUSPEND)
     {
@@ -334,7 +340,7 @@ bool BMX160::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mo
         {
             return false;
         }
-        this->wait(1); // 0.5 + 0.3 ms
+        this->timingImplementation->wait(1); // 0.5 + 0.3 ms
     }
     else
     {
@@ -377,7 +383,7 @@ bool BMX160::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mo
         {
             return false;
         }
-        this->wait(1);
+        this->timingImplementation->wait(1);
     }
 
     this->magnetometer_interface_power_mode = power_mode;
@@ -385,7 +391,7 @@ bool BMX160::setMagnInterfacePowerMode(const MAGN_INTERFACE::POWER_MODE power_mo
     return true;
 }
 
-bool BMX160::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data)
+bool BMX160_Base::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data)
 {
     if (!this->writeReg(REGISTER::MAG_IF_3, data))
     {
@@ -403,7 +409,7 @@ bool BMX160::MagnIndirectWrite(MAGN::REGISTER reg, uint8_t data)
     return true;
 }
 
-bool BMX160::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer)
+bool BMX160_Base::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer)
 {
     if (!this->writeReg(REGISTER::MAG_IF_1, static_cast<uint8_t>(reg)))
     {
@@ -421,7 +427,7 @@ bool BMX160::MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer)
     return true;
 }
 
-bool BMX160::waitForMagn()
+bool BMX160_Base::waitForMagn()
 {
     bool waiting = true;
     uint8_t read_data;
@@ -440,7 +446,7 @@ bool BMX160::waitForMagn()
     return true;
 }
 
-bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
+bool BMX160_Base::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
 {
     if (this->accelerometer_power_mode != ACCEL::POWER_MODE::NORMAL &&
         this->gyroscope_power_mode != GYRO::POWER_MODE::NORMAL &&
@@ -469,7 +475,7 @@ bool BMX160::getAllData(DataPacket &accel, DataPacket &gyro, DataPacket &magn)
     return true;
 }
 
-bool BMX160::getTemp(float &temp)
+bool BMX160_Base::getTemp(float &temp)
 {
     uint8_t buffer[2];
 
@@ -500,7 +506,7 @@ bool BMX160::getTemp(float &temp)
     return true;
 }
 
-bool BMX160::setAccelOdr(const ACCEL::ODR odr)
+bool BMX160_Base::setAccelOdr(const ACCEL::ODR odr)
 {
     // Check if correct odr -----------------------------
     if (odr > ACCEL::ODR::Hz1600 || odr < ACCEL::ODR::Hz25_over_32)
@@ -550,7 +556,7 @@ bool BMX160::setAccelOdr(const ACCEL::ODR odr)
     return true;
 }
 
-bool BMX160::getAccelOdr(ACCEL::ODR &odr)
+bool BMX160_Base::getAccelOdr(ACCEL::ODR &odr)
 {
 
     uint8_t byte;
@@ -571,7 +577,7 @@ bool BMX160::getAccelOdr(ACCEL::ODR &odr)
     return true;
 }
 
-bool BMX160::setGyroOdr(const GYRO::ODR odr)
+bool BMX160_Base::setGyroOdr(const GYRO::ODR odr)
 {
     // Check if correct odr -----------------------------
     if (odr > GYRO::ODR::Hz3200 || odr < GYRO::ODR::Hz25)
@@ -612,7 +618,7 @@ bool BMX160::setGyroOdr(const GYRO::ODR odr)
     return true;
 }
 
-bool BMX160::getGyroOdr(GYRO::ODR &odr)
+bool BMX160_Base::getGyroOdr(GYRO::ODR &odr)
 {
     uint8_t byte;
     if (!readReg(REGISTER::GYR_CONF, byte))
@@ -631,7 +637,7 @@ bool BMX160::getGyroOdr(GYRO::ODR &odr)
     return true;
 }
 
-bool BMX160::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr)
+bool BMX160_Base::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr)
 {
     // Check if correct odr -----------------------------
     // See table 11 for allowed ODR w.r.t. preset -> using regular preset
@@ -686,7 +692,7 @@ bool BMX160::setMagnInterfaceOdr(const MAGN_INTERFACE::ODR odr)
     return true;
 }
 
-bool BMX160::getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr)
+bool BMX160_Base::getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr)
 {
     uint8_t byte;
     if (!readReg(REGISTER::MAG_CONF, byte))
@@ -706,7 +712,7 @@ bool BMX160::getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr)
     return true;
 }
 
-bool BMX160::getErrorRegister(uint8_t &error_code)
+bool BMX160_Base::getErrorRegister(uint8_t &error_code)
 {
     if (!readReg(REGISTER::ERR_REG, error_code))
     {
@@ -715,7 +721,7 @@ bool BMX160::getErrorRegister(uint8_t &error_code)
     return true;
 }
 
-bool BMX160::softReset(){
+bool BMX160_Base::softReset(){
     if(!writeReg(REGISTER::CMD,UINT8_C(0xB6))){
         return false;
     }
@@ -723,12 +729,12 @@ bool BMX160::softReset(){
 }
 
 
-bool BMX160::writeReg(const REGISTER reg, const uint8_t byte)
+bool BMX160_Base::writeReg(const REGISTER reg, const uint8_t byte)
 {
     return this->writeReg(&reg,&byte,1);
 }
 
-bool BMX160::writeReg(REGISTER const *const regs, uint8_t const*const buffer, size_t length)
+bool BMX160_Base::writeReg(REGISTER const *const regs, uint8_t const*const buffer, size_t length)
 {
     // Note that the begin/end transmission bufefr size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
 
@@ -745,19 +751,19 @@ bool BMX160::writeReg(REGISTER const *const regs, uint8_t const*const buffer, si
         this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
         if (wait_per_write)
         {
-            this->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
+            this->timingImplementation->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
         }
     }
 
     return this->state == ERROR_CODE::ALL_OK;
 }
 
-bool BMX160::readReg(const REGISTER reg, uint8_t &buffer)
+bool BMX160_Base::readReg(const REGISTER reg, uint8_t &buffer)
 {
     return this->readReg(reg, &buffer, 1);
 }
 
-bool BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
+bool BMX160_Base::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
 {
     // Send register to read
     Wire.beginTransmission(this->address);
@@ -780,7 +786,7 @@ bool BMX160::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
     return this->state == ERROR_CODE::ALL_OK;
 }
 
-bool BMX160::isConnected()
+bool BMX160_Base::isConnected()
 {
     Wire.beginTransmission(this->address);
     this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
@@ -796,7 +802,7 @@ inline void CopyBufferToDataPacket(DataPacket &packet, uint8_t *buffer, float co
     packet.z = static_cast<int16_t>(static_cast<uint16_t>(buffer[5]) << 8 | buffer[4]) * conversionFactor;
 }
 
-bool BMX160::getChipID(uint8_t &chip_id)
+bool BMX160_Base::getChipID(uint8_t &chip_id)
 {
     if (!this->readReg(REGISTER::CHIP_ID, chip_id))
     {
@@ -804,9 +810,4 @@ bool BMX160::getChipID(uint8_t &chip_id)
     }
 
     return true;
-}
-
-void BMX160::wait(unsigned long time)
-{
-    delay(time);
 }

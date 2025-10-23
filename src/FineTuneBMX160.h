@@ -16,6 +16,7 @@
 
 #include "registers.h"
 #include "masks.h"
+#include "interfaces.h"
 
 namespace FineTuneBMX160
 {
@@ -34,7 +35,8 @@ namespace FineTuneBMX160
         INVALID_ODR_SETTING = UINT8_C(9),
         ERR_REG = UINT8_C(10),
         INVALID_RANGE_SETTING = UINT8_C(11),
-        INVALID_POWER_SETTING = UINT8_C(12)
+        INVALID_POWER_SETTING = UINT8_C(12),
+        MISSING_TIMER_IMPLEMENTATION = UINT8_C(13)
     };
 
     constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000; ///< Maximum I2C clock frequency allowed for BMX160
@@ -54,7 +56,7 @@ namespace FineTuneBMX160
      * @brief Sensor API. All communication with sensor should happen throuh this library
      *
      */
-    class BMX160
+    class BMX160_Base
     {
     public:
         /**
@@ -64,14 +66,9 @@ namespace FineTuneBMX160
         ERROR_CODE state = ERROR_CODE::UNINITIALIZED;
 
         // Initializers --------------------------------------------------------------
-        BMX160() = default;
 
-        /**
-         * @brief Constructor with specific Wire instance or device address
-         *
-         * @param address Device address
-         */
-        BMX160(uint8_t address);
+
+        BMX160_Base() = default;
         // --------------------------------------------------------------------------
 
         /**
@@ -191,7 +188,7 @@ namespace FineTuneBMX160
          *
          * @return bool success/fail status
          */
-        virtual bool isConnected();
+        bool isConnected();
 
         /**
          * @brief Retrieves the chip's id. Correct when == 216
@@ -265,6 +262,10 @@ namespace FineTuneBMX160
         bool softReset();
         
     protected:
+        TimingInterface* timingImplementation = nullptr;
+
+        void setTimingInterface(TimingInterface& timingImplementation);
+
         const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
@@ -289,11 +290,6 @@ namespace FineTuneBMX160
 
         MAGN_INTERFACE::DATA_SIZE magnetometer_interface_data_size = MAGN_INTERFACE::DATA_SIZE::XYZ_RHALL; ///< Current values to copy to BMX160 memory
 
-        /**
-         * @brief Waiting function the library will employ. Can be overwritten with a derived class
-         *
-         */
-        virtual void wait(unsigned long time);
 
         /**
          * @brief Sends a write command through the I2C protocol
@@ -312,7 +308,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer and regs arrays
          * @return bool success/fail status
          */
-        virtual bool writeReg(REGISTER const *const reg, uint8_t const*const buffer, size_t length);
+        bool writeReg(REGISTER const *const reg, uint8_t const*const buffer, size_t length);
 
         /**
          * @brief Requests one byte through the I2C protocol
@@ -331,7 +327,7 @@ namespace FineTuneBMX160
          * @param length Length of buffer buffer
          * @return bool success/fail status
          */
-        virtual bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
+        bool readReg(const REGISTER reg, uint8_t *const buffer, size_t length);
 
         /**
          * @brief Continuously checks register 0x1B (STATUS) for bit <1> mag_man_op = 0.
@@ -357,8 +353,22 @@ namespace FineTuneBMX160
          * @return bool success/fail status
          */
         bool MagnIndirectRead(MAGN::REGISTER reg, uint8_t &buffer);
+
+        
     };
 
+    template<typename Timer = ArduinoBlockingTiming>
+    class BMX160_Template : public BMX160_Base {
+    private:
+        Timer timingInterface;
+    public:
+        BMX160_Template(){
+            this->setTimingInterface(timingInterface); // safe
+        }
+    };
+
+    // optional alias
+    using BMX160 = BMX160_Template<>;
 }
 
 #endif
