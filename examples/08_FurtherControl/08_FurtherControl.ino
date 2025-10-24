@@ -10,6 +10,8 @@ class public_imu: public BMX160{
         using BMX160::readReg;
 };
 public_imu bmx160;
+
+// Alternatively, the base class BMX160_Base can be used. In that case, the interfaces must be manually created and assigned via BMX160_Base::setTimingInterface(...) &  BMX160_Base::setCommunicationInterface(...)
 // ---------------------------------------
 
 void setup()
@@ -17,9 +19,8 @@ void setup()
     Serial.begin(115200);
     while (!Serial);
 
-    Wire.begin();
 
-    !bmx160.begin();
+    bmx160.begin();
 
     // Manually setting ACCEL::RANGE to G2 and checking
     bmx160.writeReg(REGISTER::ACC_RANGE,3);

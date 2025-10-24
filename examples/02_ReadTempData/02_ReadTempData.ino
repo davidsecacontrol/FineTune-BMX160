@@ -8,7 +8,6 @@ void setup()
     Serial.begin(115200);
     while (!Serial);
 
-    Wire.begin();
 
     bmx160.begin();
 }

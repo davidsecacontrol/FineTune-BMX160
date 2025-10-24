@@ -16,7 +16,6 @@ void setup()
     Serial.begin(115200);
     while (!Serial);
 
-    Wire.begin();
 
     // All library functions return a bool for success / failure:
 
