@@ -72,6 +72,12 @@ namespace FineTuneBMX160
         // --------------------------------------------------------------------------
 
         /**
+         * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state @ref ERROR_CODE::MISSING_TIMER_IMPLEMENTATION
+         * 
+         * @param timingImplementation 
+         */
+        void setTimingInterface(TimingInterface& timingImplementation);
+        /**
          * @brief Power up accelerometer, gyroscope and magnetometer(WIP)
          *
          * @return bool success/fail status
@@ -263,8 +269,6 @@ namespace FineTuneBMX160
         
     protected:
         TimingInterface* timingImplementation = nullptr;
-
-        void setTimingInterface(TimingInterface& timingImplementation);
 
         const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
 
