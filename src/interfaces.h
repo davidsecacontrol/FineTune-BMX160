@@ -81,9 +81,10 @@ class CommunicationInterface {
     virtual bool readReg(const uint8_t reg, uint8_t& buffer) = 0;
 };
 
-template<uint8_t address = 0x68>
-class ArduinoI2CCommunication : public CommunicationInterface {
-    uint8_t address = address;
+template<uint8_t I2Caddress = 0x68>
+class ArduinoI2CCommunication_Template : public CommunicationInterface {
+    public:
+    uint8_t address = I2Caddress;
 
     enum struct ERROR_CODE :uint8_t
     {
@@ -92,20 +93,23 @@ class ArduinoI2CCommunication : public CommunicationInterface {
         I2C_NACK_ON_ADDRESS = UINT8_C(2),
         I2C_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
         I2C_OTHER = UINT8_C(4),
-        I2C_TIMEOUT = UINT8_C(5)
+        I2C_TIMEOUT = UINT8_C(5),
+        UNINITIALIZED = UINT8_C(6)
     };
-    ERROR_CODE error_code = ERROR_CODE::ALL_OK;
+    ERROR_CODE error_code = ERROR_CODE::UNINITIALIZED;
 
-    ArduinoI2CCommunication() = default;
+    ArduinoI2CCommunication_Template() = default;
 
-    ArduinoI2CCommunication(uint8_t address) : address(address) {};
+    ArduinoI2CCommunication_Template(uint8_t address) : address(address) {};
 
-    ~ArduinoI2CCommunication() {
+    ~ArduinoI2CCommunication_Template() {
         Wire.end();
     }
 
     bool begin() override {
         Wire.begin();
+        this->error_code = ERROR_CODE::ALL_OK;
+        return true;
     }
 
     bool isConnected() override {
@@ -119,21 +123,21 @@ class ArduinoI2CCommunication : public CommunicationInterface {
     }
 
     bool writeReg(const uint8_t reg, const uint8_t& buffer) override {
-
+        
         Wire.beginTransmission(this->address);
         Wire.write(reg);
         Wire.write(&buffer, 1);
         this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission());
-
+                
         return this->error_code == ERROR_CODE::ALL_OK;
     }
 
     bool readReg(const uint8_t reg, uint8_t& buffer) override {
+        
         // Send register to read
         Wire.beginTransmission(this->address);
         Wire.write(&reg, 1);
         this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
-
         if(this->error_code != ERROR_CODE::ALL_OK){
             return false;
         }
@@ -142,8 +146,9 @@ class ArduinoI2CCommunication : public CommunicationInterface {
         Wire.requestFrom(this->address, 1);
         buffer = Wire.read();
         this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission());
-
         return this->error_code == ERROR_CODE::ALL_OK;
     }
 
 };
+
+using ArduinoI2CCommunication = ArduinoI2CCommunication_Template<>;

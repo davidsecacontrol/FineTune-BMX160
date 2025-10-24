@@ -47,6 +47,7 @@ bool BMX160_Base::begin()
         this->state = ERROR_CODE::MISSING_COMMS_IMPLEMENTATION;
         return false;
     }
+    this->communicationImplementation->begin();
 
     this->state = ERROR_CODE::UNINITIALIZED ;  
 
@@ -771,8 +772,8 @@ bool BMX160_Base::writeReg(REGISTER const *const regs, uint8_t const*const buffe
             this->timingImplementation->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
         }
     }
-
-    return this->state == ERROR_CODE::ALL_OK;
+    this->state = ERROR_CODE::ALL_OK;
+    return true;
 }
 
 bool BMX160_Base::readReg(const REGISTER reg, uint8_t &buffer)
@@ -789,8 +790,8 @@ bool BMX160_Base::readReg(const REGISTER reg, uint8_t *const buffer, size_t leng
             return false;
         }
     }
-
-    return this->state == ERROR_CODE::ALL_OK;
+    this->state = ERROR_CODE::ALL_OK;
+    return true;
 }
 
 bool BMX160_Base::isConnected()

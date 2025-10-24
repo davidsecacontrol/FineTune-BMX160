@@ -376,7 +376,7 @@ namespace FineTuneBMX160
         
     };
 
-    template<typename Timer = ArduinoBlockingTiming, typename Comms = ArduinoI2CCommunication<I2C_ADDRESS>>
+    template<typename Timer = ArduinoBlockingTiming, typename Comms = ArduinoI2CCommunication>
     class BMX160_Template : public BMX160_Base {
     private:
         Timer timingInterface;
