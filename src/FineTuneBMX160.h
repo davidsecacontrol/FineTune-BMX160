@@ -69,14 +69,14 @@ namespace FineTuneBMX160
         // --------------------------------------------------------------------------
 
         /**
-         * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state @ref ERROR_CODE::MISSING_TIMER_IMPLEMENTATION
+         * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state ERROR_CODE::MISSING_TIMER_IMPLEMENTATION
          * 
          * @param timingImplementation Desired implementation of TimingInterface
          */
         void setTimingInterface(TimingInterface& timingImplementation);
 
         /**
-         * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state @ref ERROR_CODE::MISSING_TIMER_IMPLEMENTATION
+         * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state ERROR_CODE::MISSING_COMMUNICATION_IMPLEMENTATION
          * 
          * @param communicationImplementation  Desired implementation of CommunicationInterface
          */
@@ -376,6 +376,12 @@ namespace FineTuneBMX160
         
     };
 
+    /**
+     * @brief BMX160_Base wrapper that owns and sets up given template interfaces
+     * 
+     * @tparam Timer Desired Timing interface
+     * @tparam Comms Desired Communication interface
+     */
     template<typename Timer = ArduinoBlockingTiming, typename Comms = ArduinoI2CCommunication>
     class BMX160_Template : public BMX160_Base {
     private:
@@ -388,8 +394,8 @@ namespace FineTuneBMX160
         }
     };
 
-    // optional alias
-    using BMX160 = BMX160_Template<>;
+    
+    using BMX160 = BMX160_Template<>; ///< Alias for using default interfaces. Intended for normal users.
 }
 
 #endif

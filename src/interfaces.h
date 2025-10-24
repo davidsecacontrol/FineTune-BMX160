@@ -81,11 +81,16 @@ class CommunicationInterface {
     virtual bool readReg(const uint8_t reg, uint8_t& buffer) = 0;
 };
 
+/**
+ * @brief Specific implementation of @ref CommunicationInterface that uses Arduino's I2C library wire.h. Used as default implementation
+ * 
+ * @tparam I2Caddress (optional) Alternative way for specifying I2C address
+ */
 template<uint8_t I2Caddress = 0x68>
 class ArduinoI2CCommunication_Template : public CommunicationInterface {
     public:
-    uint8_t address = I2Caddress;
-
+    uint8_t address = I2Caddress; ///< I2C address to communicate with
+    /** @brief Arduino's wire error codes. Also adds OK and UNINITIALIZED */
     enum struct ERROR_CODE :uint8_t
     {
         ALL_OK = UINT8_C(0),
@@ -96,15 +101,17 @@ class ArduinoI2CCommunication_Template : public CommunicationInterface {
         I2C_TIMEOUT = UINT8_C(5),
         UNINITIALIZED = UINT8_C(6)
     };
-    ERROR_CODE error_code = ERROR_CODE::UNINITIALIZED;
+    ERROR_CODE error_code = ERROR_CODE::UNINITIALIZED; ///< Current comms error_code
 
     ArduinoI2CCommunication_Template() = default;
 
+    /**
+     * @brief Construct a new ArduinoI2CCommunication_Template object
+     * 
+     * @param address desired I2C address. Intended address specification method
+     */
     ArduinoI2CCommunication_Template(uint8_t address) : address(address) {};
 
-    ~ArduinoI2CCommunication_Template() {
-        Wire.end();
-    }
 
     bool begin() override {
         Wire.begin();
