@@ -81,9 +81,9 @@ class CommunicationInterface {
     virtual bool readReg(const uint8_t reg, uint8_t& buffer) = 0;
 };
 
-
+template<uint8_t address = 0x68>
 class ArduinoI2CCommunication : public CommunicationInterface {
-    uint8_t address;
+    uint8_t address = address;
 
     enum struct ERROR_CODE :uint8_t
     {
@@ -95,6 +95,8 @@ class ArduinoI2CCommunication : public CommunicationInterface {
         I2C_TIMEOUT = UINT8_C(5)
     };
     ERROR_CODE error_code = ERROR_CODE::ALL_OK;
+
+    ArduinoI2CCommunication() = default;
 
     ArduinoI2CCommunication(uint8_t address) : address(address) {};
 
