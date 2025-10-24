@@ -82,3 +82,66 @@ class CommunicationInterface {
 };
 
 
+class ArduinoI2CCommunication : public CommunicationInterface {
+    uint8_t address;
+
+    enum struct ERROR_CODE :uint8_t
+    {
+        ALL_OK = UINT8_C(0),
+        I2C_TOO_LONG_FOR_BUFFER = UINT8_C(1),
+        I2C_NACK_ON_ADDRESS = UINT8_C(2),
+        I2C_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
+        I2C_OTHER = UINT8_C(4),
+        I2C_TIMEOUT = UINT8_C(5)
+    };
+    ERROR_CODE error_code = ERROR_CODE::ALL_OK;
+
+    ArduinoI2CCommunication(uint8_t address) : address(address) {};
+
+    ~ArduinoI2CCommunication() {
+        Wire.end();
+    }
+
+    bool begin() override {
+        Wire.begin();
+    }
+
+    bool isConnected() override {
+        Wire.beginTransmission(this->address);
+        this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission());
+        return this->error_code == ERROR_CODE::ALL_OK;
+    }
+
+    int getLastError() override {
+        return static_cast<int>(this->error_code);
+    }
+
+    bool writeReg(const uint8_t reg, const uint8_t& buffer) override {
+
+        Wire.beginTransmission(this->address);
+        Wire.write(reg);
+        Wire.write(&buffer, 1);
+        this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission());
+
+        return this->error_code == ERROR_CODE::ALL_OK;
+    }
+
+    bool readReg(const uint8_t reg, uint8_t& buffer) override {
+        // Send register to read
+        Wire.beginTransmission(this->address);
+        Wire.write(&reg, 1);
+        this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
+
+        if(this->error_code != ERROR_CODE::ALL_OK){
+            return false;
+        }
+
+        // Read the result
+        Wire.requestFrom(this->address, 1);
+        buffer = Wire.read();
+        this->error_code = static_cast<ERROR_CODE>(Wire.endTransmission());
+
+        return this->error_code == ERROR_CODE::ALL_OK;
+    }
+
+};
