@@ -32,12 +32,22 @@ void BMX160_Base::setTimingInterface(TimingInterface& timingImplementation){
     this->timingImplementation = &timingImplementation;
 }
 
+void BMX160_Base::setCommunicationInterface(CommunicationInterface& communicationImplementation){
+    this->communicationImplementation = &communicationImplementation;
+}
+
 bool BMX160_Base::begin()
 {
     if(!this->timingImplementation){
         this->state = ERROR_CODE::MISSING_TIMER_IMPLEMENTATION;
         return false;
     }
+
+    if(!this->communicationImplementation){
+        this->state = ERROR_CODE::MISSING_COMMS_IMPLEMENTATION;
+        return false;
+    }
+
     this->state = ERROR_CODE::UNINITIALIZED ;  
 
     if(!this->softReset()){ // Reset IMU
@@ -721,6 +731,12 @@ bool BMX160_Base::getErrorRegister(uint8_t &error_code)
     return true;
 }
 
+bool BMX160_Base::getCommunicationInterfaceError(int& error){
+    error = this->commImplementationError;
+    return true;
+}
+
+
 bool BMX160_Base::softReset(){
     if(!writeReg(REGISTER::CMD,UINT8_C(0xB6))){
         return false;
@@ -736,7 +752,7 @@ bool BMX160_Base::writeReg(const REGISTER reg, const uint8_t byte)
 
 bool BMX160_Base::writeReg(REGISTER const *const regs, uint8_t const*const buffer, size_t length)
 {
-    // Note that the begin/end transmission bufefr size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
+    // Note that the begin/end transmission buffer size is 32 bytes. Just in case, a new transmission is made for each one. This can be made faster by uniting all these into a single begin/end
 
     bool wait_per_write =
         this->accelerometer_power_mode != ACCEL::POWER_MODE::NORMAL &&
@@ -745,10 +761,11 @@ bool BMX160_Base::writeReg(REGISTER const *const regs, uint8_t const*const buffe
 
     for (size_t i = 0; i < length; i++)
     {
-        Wire.beginTransmission(this->address);
-        Wire.write(static_cast<uint8_t>(regs[i]));
-        Wire.write(&buffer[i], 1);
-        this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
+        if(!this->communicationImplementation->writeReg(static_cast<uint8_t>(regs[i]),buffer[i])){
+            this->commImplementationError = this->communicationImplementation->getLastError();
+            this->state = ERROR_CODE::COMMUNICATION_INTERFACE_ERROR;
+            return false;
+        }
         if (wait_per_write)
         {
             this->timingImplementation->wait(1); // It is required to wait 0.4 ms before writes if all sensors suspended / low power
@@ -765,32 +782,20 @@ bool BMX160_Base::readReg(const REGISTER reg, uint8_t &buffer)
 
 bool BMX160_Base::readReg(const REGISTER reg, uint8_t *const buffer, size_t length)
 {
-    // Send register to read
-    Wire.beginTransmission(this->address);
-    Wire.write(reinterpret_cast<const uint8_t *>(&reg), 1);
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission(false)); // Error to be addressed, "false" to not release bus
-
-    if (this->state != ERROR_CODE::ALL_OK)
-    {
-        return false;
+    for(size_t i = 0; i < length; i++){
+        if(!this->communicationImplementation->readReg(static_cast<uint8_t>(reg)+i,buffer[i])){
+            this->commImplementationError = this->communicationImplementation->getLastError();
+            this->state = ERROR_CODE::COMMUNICATION_INTERFACE_ERROR;
+            return false;
+        }
     }
-
-    // Read the result
-    Wire.requestFrom(this->address, length);
-    for (size_t i = 0; i < length; i++)
-    {
-        buffer[i] = Wire.read();
-    }
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
 
     return this->state == ERROR_CODE::ALL_OK;
 }
 
 bool BMX160_Base::isConnected()
 {
-    Wire.beginTransmission(this->address);
-    this->state = static_cast<ERROR_CODE>(Wire.endTransmission());
-    return this->state == ERROR_CODE::ALL_OK;
+    return this->communicationImplementation->isConnected();
 }
 
 // Other utility functions

@@ -24,19 +24,16 @@ namespace FineTuneBMX160
     enum struct ERROR_CODE : uint8_t // DO NOT CHANGE ORDER OF I2C ELEMENTS
     {
         ALL_OK = UINT8_C(0),
-        I2C_TOO_LONG_FOR_BUFFER = UINT8_C(1),
-        I2C_NACK_ON_ADDRESS = UINT8_C(2),
-        I2C_NACK_ON_DATA_TRANSMISSION = UINT8_C(3),
-        I2C_OTHER = UINT8_C(4),
-        I2C_TIMEOUT = UINT8_C(5),
-        UNINITIALIZED = UINT8_C(6),
-        INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(7),
-        NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(8),
-        INVALID_ODR_SETTING = UINT8_C(9),
-        ERR_REG = UINT8_C(10),
-        INVALID_RANGE_SETTING = UINT8_C(11),
-        INVALID_POWER_SETTING = UINT8_C(12),
-        MISSING_TIMER_IMPLEMENTATION = UINT8_C(13)
+        UNINITIALIZED = UINT8_C(1),
+        COMMUNICATION_INTERFACE_ERROR = UINT8_C(2),
+        INVALID_TEMPERATURE_MEASUREMENT = UINT8_C(3),
+        NO_BURST_READING_DATA_WHEN_ALL_SUSPENDED_OR_LOW_POWER = UINT8_C(4),
+        INVALID_ODR_SETTING = UINT8_C(5),
+        ERR_REG = UINT8_C(6),
+        INVALID_RANGE_SETTING = UINT8_C(7),
+        INVALID_POWER_SETTING = UINT8_C(8),
+        MISSING_TIMER_IMPLEMENTATION = UINT8_C(9),
+        MISSING_COMMS_IMPLEMENTATION = UINT8_C(10)
     };
 
     constexpr uint32_t MAX_I2C_CLOCK_FREQUENCY = 1000000; ///< Maximum I2C clock frequency allowed for BMX160
@@ -74,11 +71,20 @@ namespace FineTuneBMX160
         /**
          * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state @ref ERROR_CODE::MISSING_TIMER_IMPLEMENTATION
          * 
-         * @param timingImplementation 
+         * @param timingImplementation Desired implementation of TimingInterface
          */
         void setTimingInterface(TimingInterface& timingImplementation);
+
         /**
-         * @brief Power up accelerometer, gyroscope and magnetometer(WIP)
+         * @brief Select the timing interface from @ref TimingInterface. If not called, @ref begin() will fail with state @ref ERROR_CODE::MISSING_TIMER_IMPLEMENTATION
+         * 
+         * @param communicationImplementation  Desired implementation of CommunicationInterface
+         */
+        void setCommunicationInterface(CommunicationInterface& communicationImplementation);
+
+        
+        /**
+         * @brief Software reset & power up of accelerometer, gyroscope and magnetometer.
          *
          * @return bool success/fail status
          */
@@ -253,13 +259,22 @@ namespace FineTuneBMX160
         bool getMagnInterfaceOdr(MAGN_INTERFACE::ODR &odr);
 
         /** 
-         * @brief Copies the BMX160 error code 0x02<4:1> to error_code
+         * @brief Copies the BMX160 error code 0x02<4:1> to @p error_code
          * 
          * @param error_code Variable to copy the error code to
          * @return bool success/fail status
          */
         bool getErrorRegister(uint8_t &error_code);
         
+        /**
+         * @brief Copies the communication implementation error code into @p error . For better understanding, this error can be constrasted with the error definitions of the specific communication implementation.
+         * 
+         * @param error Variable to copy the communication implementaiton error into
+         * @return bool success/fail status
+
+         */
+        bool getCommunicationInterfaceError(int& error);
+
         /**
          * @brief Trigers a reboot of the whole BMX160
          * 
@@ -268,9 +283,9 @@ namespace FineTuneBMX160
         bool softReset();
         
     protected:
-        TimingInterface* timingImplementation = nullptr;
-
-        const uint8_t address = UINT8_C(I2C_ADDRESS); ///< Sensor address
+        TimingInterface* timingImplementation = nullptr; ///< Pointer to timing implementation to use. Resource is not owned.
+        CommunicationInterface* communicationImplementation = nullptr; ///< Pointer to communication implementation to use. Resource is not owned.
+        int commImplementationError = 0; ///< If ERROR_CODE::COMMUNICATION_INTERFACE_ERROR then check this value.
 
         ACCEL::RANGE accelerometer_range = ACCEL::RANGE::G2; ///< Current accelerometer range
         GYRO::RANGE gyroscope_range = GYRO::RANGE::DPS2000;  ///< Current gyroscope range
