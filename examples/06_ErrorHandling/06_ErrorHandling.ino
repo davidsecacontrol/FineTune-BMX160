@@ -47,7 +47,16 @@ void setup()
     bmx160.getErrorRegister(error_code); 
     Serial.print("BMX160 ERR_REG (forced error code): 0b");Serial.println(error_code,BIN);
 
-
+    // If there is a communication error, it can be obtained from getCommit will be reflected by ERROR_CODE::COMMUNICATION_INTERFACE_ERROR
+    Serial.println("Triggering communication error...");
+    // Forcing such an error by reassigning the commsImplementation with an incorrect address:
+    ArduinoI2CCommunication comms_wrong(0x00);
+    bmx160.setCommunicationInterface(comms_wrong);
+    bmx160.isConnected();
+    int comms_error;
+    bmx160.getCommunicationInterfaceError(comms_error);
+    Serial.print("BMX160 Error code: ");Serial.print((uint8_t)bmx160.state);Serial.print("/");Serial.println((uint8_t)ERROR_CODE::COMMUNICATION_INTERFACE_ERROR);
+    Serial.print("Comms error code: ");Serial.print(comms_error);Serial.print("/");Serial.println((uint8_t)ArduinoI2CCommunication::ERROR_CODE::I2C_NACK_ON_ADDRESS);
 }
 
 void loop()

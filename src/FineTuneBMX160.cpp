@@ -796,7 +796,13 @@ bool BMX160_Base::readReg(const REGISTER reg, uint8_t *const buffer, size_t leng
 
 bool BMX160_Base::isConnected()
 {
-    return this->communicationImplementation->isConnected();
+    if(!this->communicationImplementation->isConnected()){
+        this->state = ERROR_CODE::COMMUNICATION_INTERFACE_ERROR;
+        this->commImplementationError = this->communicationImplementation->getLastError();
+        return false;
+    }
+    this->state = ERROR_CODE::ALL_OK;
+    return true;
 }
 
 // Other utility functions
