@@ -10,7 +10,6 @@ FineTuneBMX160::BMX160 bmx160;
 ```
 And then initialize it:
 ```
-Wire.begin();
 bmx160.begin();
 ```
 Sensor data can now be read:
